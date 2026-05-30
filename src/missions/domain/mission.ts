@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import type { Polygon } from 'typeorm/driver/types/GeoJsonTypes';
+import { AffectedArea } from '../../affected-areas/domain/affected-area';
 import { User } from '../../users/domain/user';
 
 export class Mission {
@@ -11,37 +11,46 @@ export class Mission {
   @ApiProperty({
     type: String,
   })
-  nome: string;
+  name: string;
 
   @ApiProperty({
     type: String,
+    nullable: true,
   })
-  codigoCar: string;
+  objective?: string | null;
 
   @ApiProperty({
-    example: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [-48.123, -15.456],
-          [-48.124, -15.456],
-          [-48.124, -15.457],
-          [-48.123, -15.456],
-        ],
-      ],
-    },
+    type: () => AffectedArea,
+    nullable: true,
   })
-  poligono: Polygon;
+  affectedArea?: AffectedArea | null;
 
   @ApiProperty({
     type: () => User,
   })
-  tecnico: User;
+  assignedTo: User;
 
   @ApiProperty({
-    enum: ['pending', 'completed'],
+    type: () => User,
+    nullable: true,
+  })
+  createdBy?: User | null;
+
+  @ApiProperty({
+    enum: ['pending', 'scheduled', 'in_progress', 'submitted', 'completed'],
   })
   status: string;
+
+  @ApiProperty({
+    type: String,
+  })
+  priority: string;
+
+  @ApiProperty({
+    nullable: true,
+    type: Date,
+  })
+  dueDate?: Date | null;
 
   @ApiProperty()
   createdAt: Date;

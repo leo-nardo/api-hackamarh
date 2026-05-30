@@ -10,6 +10,8 @@ import { Mission } from './domain/mission';
 import { MissionRepository } from './infrastructure/persistence/mission.repository';
 import { IPaginationOptions } from '../utils/types/pagination-options';
 import { User } from '../users/domain/user';
+import { AffectedArea } from '../affected-areas/domain/affected-area';
+import { DeepPartial } from '../utils/types/deep-partial.type';
 
 @Injectable()
 export class MissionsService {
@@ -19,14 +21,23 @@ export class MissionsService {
   ) {}
 
   async create(createMissionDto: CreateMissionDto) {
-    const tecnico = await this.getTecnicoOrFail(createMissionDto.tecnico.id);
+    const assignedTo = await this.getTecnicoOrFail(
+      createMissionDto.assignedTo.id,
+    );
 
     return this.missionRepository.create({
-      nome: createMissionDto.nome,
-      codigoCar: createMissionDto.codigoCar,
-      poligono: createMissionDto.poligono,
-      tecnico,
-      status: createMissionDto.status,
+      name: createMissionDto.name,
+      objective: createMissionDto.objective,
+      affectedArea: createMissionDto.affectedArea
+        ? ({ id: createMissionDto.affectedArea.id } as AffectedArea)
+        : null,
+      assignedTo,
+      createdBy: createMissionDto.createdBy
+        ? ({ id: createMissionDto.createdBy.id } as User)
+        : null,
+      status: createMissionDto.status ?? 'scheduled',
+      priority: createMissionDto.priority ?? 'normal',
+      dueDate: createMissionDto.dueDate,
     } as Mission);
   }
 
@@ -53,19 +64,27 @@ export class MissionsService {
 
   async update(id: Mission['id'], updateMissionDto: UpdateMissionDto) {
     const payload: Partial<Mission> = {
-      nome: updateMissionDto.nome,
-      codigoCar: updateMissionDto.codigoCar,
-      poligono: updateMissionDto.poligono,
+      name: updateMissionDto.name,
+      objective: updateMissionDto.objective,
+      affectedArea: updateMissionDto.affectedArea
+        ? ({ id: updateMissionDto.affectedArea.id } as AffectedArea)
+        : undefined,
       status: updateMissionDto.status,
+      priority: updateMissionDto.priority,
+      dueDate: updateMissionDto.dueDate,
     };
 
-    if (updateMissionDto.tecnico) {
-      payload.tecnico = await this.getTecnicoOrFail(
-        updateMissionDto.tecnico.id,
+    if (updateMissionDto.assignedTo) {
+      payload.assignedTo = await this.getTecnicoOrFail(
+        updateMissionDto.assignedTo.id,
       );
     }
 
-    return this.missionRepository.update(id, payload);
+    if (updateMissionDto.createdBy) {
+      payload.createdBy = { id: updateMissionDto.createdBy.id } as User;
+    }
+
+    return this.missionRepository.update(id, payload as DeepPartial<Mission>);
   }
 
   remove(id: Mission['id']) {

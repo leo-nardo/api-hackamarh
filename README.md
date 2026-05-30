@@ -31,6 +31,11 @@ PowerSync integration endpoints:
 - `PATCH /api/powersync/data/:table`: patches one `mission` or `evidence` row.
 - `DELETE /api/powersync/data/:table/:id`: deletes one row.
 
+Mobile app endpoint:
+
+- `GET /api/mobile/missions`: returns assigned missions with schedule,
+  property, affected area polygon and collection points.
+
 Hackamarh backend documentation: [docs/hackamarh-backend.md](/docs/hackamarh-backend.md)
 
 First mobile photo flow plan:

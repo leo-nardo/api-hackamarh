@@ -10,7 +10,9 @@ import {
   ValidateNested,
 } from 'class-validator';
 import type { Point } from 'typeorm/driver/types/GeoJsonTypes';
+import { CollectionPointDto } from '../../collection-points/dto/collection-point.dto';
 import { MissionDto } from '../../missions/dto/mission.dto';
+import { UserDto } from '../../users/dto/user.dto';
 
 export class CreateEvidenceDto {
   @ApiProperty({
@@ -22,13 +24,33 @@ export class CreateEvidenceDto {
   mission: MissionDto;
 
   @ApiProperty({
+    nullable: true,
+    required: false,
+    type: () => CollectionPointDto,
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CollectionPointDto)
+  collectionPoint?: CollectionPointDto | null;
+
+  @ApiProperty({
+    nullable: true,
+    required: false,
+    type: () => UserDto,
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => UserDto)
+  technician?: UserDto | null;
+
+  @ApiProperty({
     example: {
       type: 'Point',
       coordinates: [-48.123, -15.456],
     },
   })
   @IsObject()
-  coordenada: Point;
+  location: Point;
 
   @ApiProperty({
     type: String,
@@ -41,7 +63,17 @@ export class CreateEvidenceDto {
   })
   @Transform(({ value }) => new Date(value))
   @IsDate()
-  timestamp: Date;
+  capturedAt: Date;
+
+  @ApiProperty({
+    nullable: true,
+    required: false,
+    type: Date,
+  })
+  @IsOptional()
+  @Transform(({ value }) => (value ? new Date(value) : value))
+  @IsDate()
+  submittedAt?: Date | null;
 
   @ApiProperty({
     nullable: true,
@@ -50,5 +82,40 @@ export class CreateEvidenceDto {
   })
   @IsOptional()
   @IsNumber()
-  mortalidadeTaxa?: number | null;
+  mortalityRate?: number | null;
+
+  @ApiProperty({
+    nullable: true,
+    required: false,
+    type: String,
+  })
+  @IsOptional()
+  @IsString()
+  faseSucessional?: string | null;
+
+  @ApiProperty({
+    nullable: true,
+    required: false,
+    type: String,
+  })
+  @IsOptional()
+  @IsString()
+  metodoRestauracao?: string | null;
+
+  @ApiProperty({
+    nullable: true,
+    required: false,
+    type: String,
+  })
+  @IsOptional()
+  @IsString()
+  notes?: string | null;
+
+  @ApiProperty({
+    required: false,
+    type: String,
+  })
+  @IsOptional()
+  @IsString()
+  validationStatus?: string;
 }
