@@ -31,6 +31,8 @@ PowerSync integration endpoints:
 - `PATCH /api/powersync/data/:table`: patches one `mission` or `evidence` row.
 - `DELETE /api/powersync/data/:table/:id`: deletes one row.
 
+Hackamarh backend documentation: [docs/hackamarh-backend.md](/docs/hackamarh-backend.md)
+
 Demo: <https://nestjs-boilerplate-test.herokuapp.com/docs>
 
 A fully compatible frontend boilerplate: <https://github.com/brocoders/extensive-react-boilerplate>

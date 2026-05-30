@@ -5,6 +5,7 @@
 ## Table of Contents
 
 - [Introduction](introduction.md)
+- [Hackamarh Backend](hackamarh-backend.md)
 - [Installing and Running](installing-and-running.md)
 - [Architecture](architecture.md)
 - [Command Line Interface](cli.md)
