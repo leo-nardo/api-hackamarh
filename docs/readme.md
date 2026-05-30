@@ -6,6 +6,7 @@
 
 - [Introduction](introduction.md)
 - [Hackamarh Backend](hackamarh-backend.md)
+- [Collection Point Photo Backend Plan](collection-point-photo-backend-plan.md)
 - [Installing and Running](installing-and-running.md)
 - [Architecture](architecture.md)
 - [Command Line Interface](cli.md)
