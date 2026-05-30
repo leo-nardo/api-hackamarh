@@ -13,6 +13,7 @@ import { randomStringGenerator } from '@nestjs/common/utils/random-string-genera
 import { ConfigService } from '@nestjs/config';
 import { FileType } from '../../../domain/file';
 import { AllConfigType } from '../../../../config/config.type';
+import { createS3Client } from '../../../config/s3-client';
 
 @Injectable()
 export class FilesS3PresignedService {
@@ -22,17 +23,7 @@ export class FilesS3PresignedService {
     private readonly fileRepository: FileRepository,
     private readonly configService: ConfigService<AllConfigType>,
   ) {
-    this.s3 = new S3Client({
-      region: configService.get('file.awsS3Region', { infer: true }),
-      credentials: {
-        accessKeyId: configService.getOrThrow('file.accessKeyId', {
-          infer: true,
-        }),
-        secretAccessKey: configService.getOrThrow('file.secretAccessKey', {
-          infer: true,
-        }),
-      },
-    });
+    this.s3 = createS3Client(configService.getOrThrow('file', { infer: true }));
   }
 
   async create(
