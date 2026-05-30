@@ -17,6 +17,20 @@ NestJS REST API boilerplate for a typical project
 
 [Full documentation here](/docs/readme.md)
 
+## Hackamarh MVP
+
+Backend for an offline-first environmental monitoring MVP using NestJS,
+PostgreSQL/PostGIS and PowerSync.
+
+PowerSync integration endpoints:
+
+- `GET /api/powersync/token`: returns a PowerSync JWT for the authenticated user.
+- `POST /api/powersync/data`: applies a batch of PowerSync CRUD operations.
+- `POST /api/powersync/upload`: alias for the batch upload route.
+- `PUT /api/powersync/data/:table`: upserts one `mission` or `evidence` row.
+- `PATCH /api/powersync/data/:table`: patches one `mission` or `evidence` row.
+- `DELETE /api/powersync/data/:table/:id`: deletes one row.
+
 Demo: <https://nestjs-boilerplate-test.herokuapp.com/docs>
 
 A fully compatible frontend boilerplate: <https://github.com/brocoders/extensive-react-boilerplate>

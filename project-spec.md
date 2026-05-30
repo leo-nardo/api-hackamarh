@@ -26,3 +26,4 @@
 ## 3. PowerSync Requirements
 - PostgreSQL must have `wal_level = logical` enabled in Docker.
 - A custom endpoint (`/api/powersync/token`) must be created to issue JWTs based on the authenticated user.
+- A custom upload endpoint (`/api/powersync/data`) must synchronously apply PowerSync CRUD writes to PostgreSQL.
