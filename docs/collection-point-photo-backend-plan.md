@@ -195,8 +195,8 @@ Batch payload:
 }
 ```
 
-Backend still needs to add `collection_point_id`, `notes` and analyst validation
-fields to `Evidence`.
+Backend now stores `collection_point_id`, `notes`, `altitude`, `device_model`
+and analyst validation fields on `Evidence`.
 
 ## Backend Validation Rules
 
@@ -212,14 +212,16 @@ When an evidence row arrives, backend should eventually compute:
 Suggested evidence validation fields:
 
 ```text
-validation_status: pending | valid | invalid | needs_review
+status: pending | approved | rejected | needs_review
 validation_reason
 validated_by
 validated_at
 ```
 
-For the first implementation, set `validation_status = pending` and store
-reason text only when automatic validation fails.
+For the first implementation, set `status = pending` and store reason text only
+when automatic validation fails. `sync_status` should remain local to the
+Flutter/PowerSync client and should not be treated as the backend evidence
+analysis status.
 
 ## Implementation Steps
 
@@ -285,9 +287,14 @@ Required local evidence fields:
 id
 mission_id
 collection_point_id
-coordenada/location
+property_id
+latitude
+longitude
+altitude
 foto_url
 timestamp/captured_at
+device_model
+status
 notes
 sync state local-only
 ```

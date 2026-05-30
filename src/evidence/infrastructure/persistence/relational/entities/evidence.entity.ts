@@ -10,6 +10,7 @@ import {
 import type { Point } from 'typeorm/driver/types/GeoJsonTypes';
 import { CollectionPointEntity } from '../../../../../collection-points/infrastructure/persistence/relational/entities/collection-point.entity';
 import { MissionEntity } from '../../../../../missions/infrastructure/persistence/relational/entities/mission.entity';
+import { PropertyEntity } from '../../../../../properties/infrastructure/persistence/relational/entities/property.entity';
 import { UserEntity } from '../../../../../users/infrastructure/persistence/relational/entities/user.entity';
 import { EntityRelationalHelper } from '../../../../../utils/relational-entity-helper';
 
@@ -20,12 +21,22 @@ export class EvidenceEntity extends EntityRelationalHelper {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ default: 'pending', type: String })
+  status: string;
+
   @ManyToOne(() => MissionEntity, {
     eager: true,
     nullable: false,
   })
   @JoinColumn({ name: 'mission_id' })
   mission: MissionEntity;
+
+  @ManyToOne(() => PropertyEntity, {
+    eager: true,
+    nullable: true,
+  })
+  @JoinColumn({ name: 'property_id' })
+  property?: PropertyEntity | null;
 
   @ManyToOne(() => CollectionPointEntity, {
     eager: true,
@@ -49,7 +60,13 @@ export class EvidenceEntity extends EntityRelationalHelper {
   })
   location: Point;
 
-  @Column({ name: 'foto_url', type: String })
+  @Column({
+    nullable: true,
+    type: 'double precision',
+  })
+  altitude?: number | null;
+
+  @Column({ name: 'foto_url', type: 'text' })
   fotoUrl: string;
 
   @Column({ name: 'timestamp', type: 'timestamptz' })
@@ -57,6 +74,9 @@ export class EvidenceEntity extends EntityRelationalHelper {
 
   @Column({ name: 'submitted_at', nullable: true, type: 'timestamptz' })
   submittedAt?: Date | null;
+
+  @Column({ name: 'device_model', nullable: true, type: String })
+  deviceModel?: string | null;
 
   @Column({
     name: 'mortalidade_taxa',
@@ -73,9 +93,6 @@ export class EvidenceEntity extends EntityRelationalHelper {
 
   @Column({ nullable: true, type: 'text' })
   notes?: string | null;
-
-  @Column({ default: 'pending', name: 'validation_status', type: String })
-  validationStatus: string;
 
   @Column({ name: 'validation_reason', nullable: true, type: 'text' })
   validationReason?: string | null;
