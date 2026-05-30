@@ -13,8 +13,18 @@ if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
   ./node_modules/.bin/ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js --dataSource=src/database/data-source.ts migration:run
 fi
 
-if [ "${RUN_SEEDS:-true}" = "true" ]; then
+if [ -z "${RUN_SEEDS+x}" ]; then
+  if [ "${NODE_ENV:-development}" = "production" ]; then
+    RUN_SEEDS=false
+  else
+    RUN_SEEDS=true
+  fi
+fi
+
+if [ "${RUN_SEEDS}" = "true" ]; then
   npm run seed:run:relational
+else
+  echo "Skipping seed execution."
 fi
 
 npm run start:prod
