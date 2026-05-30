@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import type { Point } from 'typeorm/driver/types/GeoJsonTypes';
 import { CollectionPoint } from '../../collection-points/domain/collection-point';
 import { Mission } from '../../missions/domain/mission';
+import { Property } from '../../properties/domain/property';
 import { User } from '../../users/domain/user';
 
 export class Evidence {
@@ -11,9 +12,20 @@ export class Evidence {
   id: string;
 
   @ApiProperty({
+    type: String,
+  })
+  status: string;
+
+  @ApiProperty({
     type: () => Mission,
   })
   mission: Mission;
+
+  @ApiProperty({
+    nullable: true,
+    type: () => Property,
+  })
+  property?: Property | null;
 
   @ApiProperty({
     nullable: true,
@@ -36,6 +48,12 @@ export class Evidence {
   location: Point;
 
   @ApiProperty({
+    nullable: true,
+    type: Number,
+  })
+  altitude?: number | null;
+
+  @ApiProperty({
     type: String,
   })
   fotoUrl: string;
@@ -50,6 +68,12 @@ export class Evidence {
     type: Date,
   })
   submittedAt?: Date | null;
+
+  @ApiProperty({
+    nullable: true,
+    type: String,
+  })
+  deviceModel?: string | null;
 
   @ApiProperty({
     nullable: true,
@@ -74,11 +98,6 @@ export class Evidence {
     type: String,
   })
   notes?: string | null;
-
-  @ApiProperty({
-    type: String,
-  })
-  validationStatus: string;
 
   @ApiProperty({
     nullable: true,

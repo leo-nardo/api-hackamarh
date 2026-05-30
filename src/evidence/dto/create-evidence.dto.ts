@@ -12,6 +12,7 @@ import {
 import type { Point } from 'typeorm/driver/types/GeoJsonTypes';
 import { CollectionPointDto } from '../../collection-points/dto/collection-point.dto';
 import { MissionDto } from '../../missions/dto/mission.dto';
+import { PropertyDto } from '../../properties/dto/property.dto';
 import { UserDto } from '../../users/dto/user.dto';
 
 export class CreateEvidenceDto {
@@ -22,6 +23,16 @@ export class CreateEvidenceDto {
   @Type(() => MissionDto)
   @IsNotEmptyObject()
   mission: MissionDto;
+
+  @ApiProperty({
+    nullable: true,
+    required: false,
+    type: () => PropertyDto,
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => PropertyDto)
+  property?: PropertyDto | null;
 
   @ApiProperty({
     nullable: true,
@@ -48,9 +59,38 @@ export class CreateEvidenceDto {
       type: 'Point',
       coordinates: [-48.123, -15.456],
     },
+    required: false,
   })
+  @IsOptional()
   @IsObject()
-  location: Point;
+  location?: Point;
+
+  @ApiProperty({
+    example: -15.456,
+    required: false,
+    type: Number,
+  })
+  @IsOptional()
+  @IsNumber()
+  latitude?: number;
+
+  @ApiProperty({
+    example: -48.123,
+    required: false,
+    type: Number,
+  })
+  @IsOptional()
+  @IsNumber()
+  longitude?: number;
+
+  @ApiProperty({
+    nullable: true,
+    required: false,
+    type: Number,
+  })
+  @IsOptional()
+  @IsNumber()
+  altitude?: number | null;
 
   @ApiProperty({
     type: String,
@@ -74,6 +114,15 @@ export class CreateEvidenceDto {
   @Transform(({ value }) => (value ? new Date(value) : value))
   @IsDate()
   submittedAt?: Date | null;
+
+  @ApiProperty({
+    nullable: true,
+    required: false,
+    type: String,
+  })
+  @IsOptional()
+  @IsString()
+  deviceModel?: string | null;
 
   @ApiProperty({
     nullable: true,
@@ -117,5 +166,5 @@ export class CreateEvidenceDto {
   })
   @IsOptional()
   @IsString()
-  validationStatus?: string;
+  status?: string;
 }

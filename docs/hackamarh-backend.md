@@ -344,18 +344,21 @@ Content-Type: application/json
 {
   "id": "8e1c5de0-9f2c-4ae6-a7bb-97cc980f5a92",
   "mission_id": "87c0e92b-830c-48c1-9a22-2cecb4166ba1",
+  "property_id": "4d2e6a90-01c7-4697-bb74-c4f9a7364d62",
   "collection_point_id": "153ecc3f-d273-40ec-85fa-022a3b278888",
-  "coordenada": {
-    "type": "Point",
-    "coordinates": [-48.333, -10.184]
-  },
+  "latitude": -10.184,
+  "longitude": -48.333,
+  "altitude": 219.4,
   "foto_url": "https://example.com/evidences/photo.jpg",
   "timestamp": "2026-05-30T10:00:00.000Z",
+  "device_model": "Samsung Galaxy A54",
+  "status": "pending",
   "mortalidade_taxa": 0.12
 }
 ```
 
-The backend also accepts point coordinates in this shape:
+The backend accepts top-level latitude/longitude or point coordinates in this
+shape:
 
 ```json
 {
@@ -373,9 +376,11 @@ ST_SetSRID(ST_GeomFromGeoJSON(...), 4326)
 ```
 
 The backend also accepts `location`, `captured_at`, `capturedAt`,
-`mortality_rate` and `mortalityRate` aliases. Evidence uploaded through
-PowerSync defaults `technician_id` to the authenticated user and
-`validation_status` to `pending`.
+`mortality_rate`, `mortalityRate`, `deviceModel`, `device_id` and `deviceId`
+aliases. Evidence uploaded through PowerSync defaults `technician_id` to the
+authenticated user and `status` to `pending`. `validation_status` remains
+accepted as a legacy upload alias, but the canonical backend column is now
+`status`.
 
 ## 7. Mobile API
 
@@ -453,10 +458,15 @@ Column names should match the backend-friendly snake_case names:
 - `codigo_car`
 - `tecnico_id`
 - `mission_id`
+- `property_id`
 - `collection_point_id`
 - `foto_url`
+- `latitude`
+- `longitude`
+- `altitude`
+- `device_model`
 - `mortalidade_taxa`
-- `validation_status`
+- `status`
 
 The backend also accepts common camelCase aliases, but matching snake_case
 reduces mapping friction.

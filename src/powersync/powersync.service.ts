@@ -230,7 +230,7 @@ export class PowersyncService {
     return {
       technician_id: user.id,
       submitted_at: new Date().toISOString(),
-      validation_status: 'pending',
+      status: 'pending',
       ...data,
     };
   }
@@ -330,7 +330,15 @@ export class PowersyncService {
     const values = new Map<string, unknown>();
 
     for (const mapping of mappings) {
-      const value = this.firstDefined(data, mapping.sourceKeys);
+      let value = this.firstDefined(data, mapping.sourceKeys);
+
+      if (
+        value === undefined &&
+        table === 'evidence' &&
+        mapping.column === 'coordenada'
+      ) {
+        value = this.pointFromLatitudeLongitude(data);
+      }
 
       if (value !== undefined) {
         values.set(mapping.column, value);
@@ -378,6 +386,7 @@ export class PowersyncService {
 
     return [
       { column: 'mission_id', sourceKeys: ['mission_id', 'missionId'] },
+      { column: 'property_id', sourceKeys: ['property_id', 'propertyId'] },
       {
         column: 'collection_point_id',
         sourceKeys: ['collection_point_id', 'collectionPointId'],
@@ -402,6 +411,10 @@ export class PowersyncService {
         ],
         geometry: 'Point',
       },
+      {
+        column: 'altitude',
+        sourceKeys: ['altitude', 'altitude_meters', 'altitudeMeters'],
+      },
       { column: 'foto_url', sourceKeys: ['foto_url', 'fotoUrl', 'photoUrl'] },
       {
         column: 'timestamp',
@@ -410,6 +423,10 @@ export class PowersyncService {
       {
         column: 'submitted_at',
         sourceKeys: ['submitted_at', 'submittedAt'],
+      },
+      {
+        column: 'device_model',
+        sourceKeys: ['device_model', 'deviceModel', 'device_id', 'deviceId'],
       },
       {
         column: 'mortalidade_taxa',
@@ -430,8 +447,8 @@ export class PowersyncService {
       },
       { column: 'notes', sourceKeys: ['notes', 'observacao', 'observations'] },
       {
-        column: 'validation_status',
-        sourceKeys: ['validation_status', 'validationStatus'],
+        column: 'status',
+        sourceKeys: ['status', 'validation_status', 'validationStatus'],
       },
       {
         column: 'validation_reason',
@@ -518,6 +535,39 @@ export class PowersyncService {
       typeof value[0] === 'number' &&
       typeof value[1] === 'number'
     );
+  }
+
+  private pointFromLatitudeLongitude(
+    data: Record<string, unknown>,
+  ): Record<string, unknown> | undefined {
+    const latitude = this.toNumber(
+      this.firstDefined(data, ['latitude', 'lat']),
+    );
+    const longitude = this.toNumber(
+      this.firstDefined(data, ['longitude', 'lng']),
+    );
+
+    if (latitude === undefined || longitude === undefined) {
+      return undefined;
+    }
+
+    return {
+      type: 'Point',
+      coordinates: [longitude, latitude],
+    };
+  }
+
+  private toNumber(value: unknown): number | undefined {
+    if (typeof value === 'number') {
+      return Number.isFinite(value) ? value : undefined;
+    }
+
+    if (typeof value === 'string' && value.trim()) {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : undefined;
+    }
+
+    return undefined;
   }
 
   private firstDefined(
