@@ -3,11 +3,13 @@ import { Type } from 'class-transformer';
 import {
   IsIn,
   IsNotEmptyObject,
-  IsObject,
+  IsOptional,
   IsString,
   ValidateNested,
 } from 'class-validator';
-import type { Polygon } from 'typeorm/driver/types/GeoJsonTypes';
+import { Transform } from 'class-transformer';
+import { IsDate } from 'class-validator';
+import { AffectedAreaDto } from '../../affected-areas/dto/affected-area.dto';
 import { UserDto } from '../../users/dto/user.dto';
 
 export class CreateMissionDto {
@@ -15,29 +17,26 @@ export class CreateMissionDto {
     type: String,
   })
   @IsString()
-  nome: string;
+  name: string;
 
   @ApiProperty({
     type: String,
+    required: false,
+    nullable: true,
   })
+  @IsOptional()
   @IsString()
-  codigoCar: string;
+  objective?: string | null;
 
   @ApiProperty({
-    example: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [-48.123, -15.456],
-          [-48.124, -15.456],
-          [-48.124, -15.457],
-          [-48.123, -15.456],
-        ],
-      ],
-    },
+    nullable: true,
+    required: false,
+    type: () => AffectedAreaDto,
   })
-  @IsObject()
-  poligono: Polygon;
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => AffectedAreaDto)
+  affectedArea?: AffectedAreaDto | null;
 
   @ApiProperty({
     type: () => UserDto,
@@ -45,12 +44,42 @@ export class CreateMissionDto {
   @ValidateNested()
   @Type(() => UserDto)
   @IsNotEmptyObject()
-  tecnico: UserDto;
+  assignedTo: UserDto;
 
   @ApiProperty({
-    enum: ['pending', 'completed'],
+    nullable: true,
+    required: false,
+    type: () => UserDto,
   })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => UserDto)
+  createdBy?: UserDto | null;
+
+  @ApiProperty({
+    enum: ['pending', 'scheduled', 'in_progress', 'submitted', 'completed'],
+    required: false,
+  })
+  @IsOptional()
   @IsString()
-  @IsIn(['pending', 'completed'])
-  status: string;
+  @IsIn(['pending', 'scheduled', 'in_progress', 'submitted', 'completed'])
+  status?: string;
+
+  @ApiProperty({
+    required: false,
+    type: String,
+  })
+  @IsOptional()
+  @IsString()
+  priority?: string;
+
+  @ApiProperty({
+    nullable: true,
+    required: false,
+    type: Date,
+  })
+  @IsOptional()
+  @Transform(({ value }) => (value ? new Date(value) : value))
+  @IsDate()
+  dueDate?: Date | null;
 }

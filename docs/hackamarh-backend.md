@@ -38,6 +38,8 @@ Important commits:
 - `0ddbc29 first commit`: initial README commit.
 - `3775c83 add project scaffold`: boilerplate adapted for Hackamarh.
 - `04c8716 add powersync upload endpoints`: PowerSync token and upload support.
+- Current domain branch adds the property, affected area, collection point,
+  schedule, external reference/observation and PRAD versioning model.
 
 ## 3. Boilerplate Pruning
 
@@ -97,59 +99,49 @@ The initial user migration also creates:
 
 ## 5. Domain Model
 
-### Mission
+The MVP now separates information controlled by this system from external
+records such as CAR, SIG-CAR, PRAD documents, MapBiomas and Brasil M.A.I.S.
 
-File:
+Core tables:
 
-`src/missions/infrastructure/persistence/relational/entities/mission.entity.ts`
+- `property`: rural property/CAR anchor, with `car_code`, owner metadata and
+  optional PostGIS `geom`.
+- `property_user`: links producers, representatives, technicians or analysts
+  to a property.
+- `restoration_plan`: PRAD/restoration planning container for a property.
+- `restoration_plan_version`: flexible PRAD/proposal versions from technician,
+  producer, official import or other source.
+- `affected_area`: one property can have many affected/restoration polygons.
+- `collection_point`: required GPS points for field photo evidence.
+- `mission`: work order assigned to a user, usually tied to one affected area.
+- `mission_schedule`: date/time window and deadline for the mission.
+- `evidence`: photo/GPS/form evidence captured in the field.
+- `external_reference`: generic external traceability record, e.g. link,
+  screenshot, document or API identifier.
+- `external_observation`: structured external observation/query result from
+  MapBiomas or similar sources.
 
-Database table:
+Existing `user`, `role`, `status` and auth tables are kept from the boilerplate.
 
-`mission`
+Spatial fields:
 
-Fields:
+- `property.geom`: `geometry(Polygon, 4326)`.
+- `affected_area.geom`: `geometry(Polygon, 4326)`.
+- `collection_point.location`: `geometry(Point, 4326)`.
+- `evidence.coordenada`: `geometry(Point, 4326)`.
+- `external_observation.geom`: generic `geometry(Geometry, 4326)`.
 
-- `id`: UUID primary key.
-- `nome`: mission name.
-- `codigo_car`: CAR code.
-- `poligono`: PostGIS `geometry(Polygon, 4326)`.
-- `tecnico_id`: relation to existing `user` table.
-- `status`: mission status, default `pending`.
-- `createdAt` and `updatedAt`.
+Important migrations:
 
-### Evidence
+- `1780086341403-CreateEnvironmentalMonitoring.ts`: initial `mission` and
+  `evidence` tables.
+- `1780090000000-ExpandEnvironmentalDomain.ts`: full domain model, PostGIS
+  indexes, schedule, collection points and external reference/observation
+  support.
 
-File:
-
-`src/evidence/infrastructure/persistence/relational/entities/evidence.entity.ts`
-
-Database table:
-
-`evidence`
-
-Fields:
-
-- `id`: UUID primary key.
-- `mission_id`: relation to `mission`.
-- `coordenada`: PostGIS `geometry(Point, 4326)`.
-- `foto_url`: photo URL.
-- `timestamp`: field capture date/time.
-- `mortalidade_taxa`: optional numeric mortality indicator.
-- `createdAt` and `updatedAt`.
-
-### Migration
-
-File:
-
-`src/database/migrations/1780086341403-CreateEnvironmentalMonitoring.ts`
-
-Creates:
-
-- `mission` table.
-- `evidence` table.
-- Foreign keys.
-- GiST indexes for spatial columns.
-- Indexes for `tecnico_id` and `mission_id`.
+Backward compatibility note: `mission.codigo_car`, `mission.poligono`,
+`evidence.coordenada`, `evidence.foto_url`, `evidence.timestamp` and
+`evidence.mortalidade_taxa` remain compatible with the first PowerSync shape.
 
 ## 6. PowerSync Integration
 
@@ -329,6 +321,7 @@ Content-Type: application/json
 {
   "id": "8e1c5de0-9f2c-4ae6-a7bb-97cc980f5a92",
   "mission_id": "87c0e92b-830c-48c1-9a22-2cecb4166ba1",
+  "collection_point_id": "153ecc3f-d273-40ec-85fa-022a3b278888",
   "coordenada": {
     "type": "Point",
     "coordinates": [-48.333, -10.184]
@@ -356,7 +349,62 @@ Internally, GeoJSON is written to PostGIS with:
 ST_SetSRID(ST_GeomFromGeoJSON(...), 4326)
 ```
 
-## 7. Flutter Connector Expectations
+The backend also accepts `location`, `captured_at`, `capturedAt`,
+`mortality_rate` and `mortalityRate` aliases. Evidence uploaded through
+PowerSync defaults `technician_id` to the authenticated user and
+`validation_status` to `pending`.
+
+## 7. Mobile API
+
+The first app-facing endpoint for the Flutter team is:
+
+```http
+GET /api/mobile/missions
+Authorization: Bearer <app_jwt>
+```
+
+It returns assigned missions with schedule, property, affected area polygon and
+collection points:
+
+```json
+[
+  {
+    "id": "d19175a0-f7d1-4f9b-9c07-1d743f0e6e4f",
+    "status": "scheduled",
+    "name": "Coleta PRAD - APP Nascente Sul",
+    "objective": "Coletar fotos georreferenciadas dos pontos definidos.",
+    "property": {
+      "id": "4d2e6a90-01c7-4697-bb74-c4f9a7364d62",
+      "carCode": "TO-DEMO-0001",
+      "name": "Fazenda Demo Hackamarh"
+    },
+    "affectedArea": {
+      "id": "0fae0d8a-961c-459d-85af-9f278508a208",
+      "name": "APP Nascente Sul",
+      "geom": {
+        "type": "Polygon",
+        "coordinates": []
+      }
+    },
+    "collectionPoints": [
+      {
+        "id": "153ecc3f-d273-40ec-85fa-022a3b278888",
+        "name": "Ponto 1 - Borda oeste",
+        "location": {
+          "type": "Point",
+          "coordinates": [-48.332, -10.1848]
+        },
+        "radiusMeters": 30,
+        "requiredPhotoCount": 1
+      }
+    ]
+  }
+]
+```
+
+Demo seed data is created idempotently for `john.doe@example.com / secret`.
+
+## 8. Flutter Connector Expectations
 
 The Flutter PowerSync connector should:
 
@@ -369,9 +417,12 @@ The Flutter PowerSync connector should:
 
 The mobile app should use client-generated UUIDs for rows created offline.
 
-Suggested local SQLite/PowerSync tables:
+Suggested local SQLite/PowerSync tables for the first photo flow:
 
 - `mission`
+- `affected_area`
+- `collection_point`
+- `mission_schedule`
 - `evidence`
 
 Column names should match the backend-friendly snake_case names:
@@ -379,29 +430,39 @@ Column names should match the backend-friendly snake_case names:
 - `codigo_car`
 - `tecnico_id`
 - `mission_id`
+- `collection_point_id`
 - `foto_url`
 - `mortalidade_taxa`
+- `validation_status`
 
 The backend also accepts common camelCase aliases, but matching snake_case
 reduces mapping friction.
 
-## 8. Verification Already Run
+## 9. Verification Already Run
 
 The following checks passed after the implementation:
 
 ```bash
-node node_modules/typescript/bin/tsc -p tsconfig.build.json --noEmit
-node node_modules/eslint/bin/eslint.js "{src,apps,libs,test}/**/*.ts"
-node node_modules/jest/bin/jest.js --runInBand --passWithNoTests
+npm run build
+npm run lint
+npm test -- --runInBand --passWithNoTests
+docker compose --env-file env-example-relational up -d --build
 ```
 
-`jest` reported no tests found, which is expected at this stage.
+`jest` reported no tests found, which is expected at this stage. The Docker
+verification executed migrations, ran seeds and started the NestJS app.
 
-## 9. Current Gaps
+Smoke checks run:
+
+- `POST /api/v1/auth/email/login`
+- `GET /api/mobile/missions`
+- `GET /api/powersync/token`
+- `POST /api/powersync/data` with one evidence write
+
+## 10. Current Gaps
 
 Items still worth doing before the demo:
 
-- Create seed data for one technician, missions and evidence examples.
 - Add PowerSync sync rules or Sync Streams configuration.
 - Decide whether photos are uploaded directly through the existing file module
   before evidence rows are synced.
@@ -410,7 +471,7 @@ Items still worth doing before the demo:
 - Decide production-style JWT signing strategy for PowerSync, especially JWKS
   if the project goes beyond the hackathon MVP.
 
-## 10. Useful Files
+## 11. Useful Files
 
 - `project-spec.md`
 - `docker-compose.yaml`
@@ -418,6 +479,9 @@ Items still worth doing before the demo:
 - `src/powersync/powersync.controller.ts`
 - `src/powersync/powersync.service.ts`
 - `src/powersync/dto/powersync-upload.dto.ts`
+- `src/mobile/mobile.controller.ts`
+- `src/mobile/mobile.service.ts`
 - `src/missions/infrastructure/persistence/relational/entities/mission.entity.ts`
 - `src/evidence/infrastructure/persistence/relational/entities/evidence.entity.ts`
 - `src/database/migrations/1780086341403-CreateEnvironmentalMonitoring.ts`
+- `src/database/migrations/1780090000000-ExpandEnvironmentalDomain.ts`

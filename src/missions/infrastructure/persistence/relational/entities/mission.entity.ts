@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import type { Polygon } from 'typeorm/driver/types/GeoJsonTypes';
+import { AffectedAreaEntity } from '../../../../../affected-areas/infrastructure/persistence/relational/entities/affected-area.entity';
 import { UserEntity } from '../../../../../users/infrastructure/persistence/relational/entities/user.entity';
 import { EntityRelationalHelper } from '../../../../../utils/relational-entity-helper';
 
@@ -18,28 +18,41 @@ export class MissionEntity extends EntityRelationalHelper {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: String })
-  nome: string;
+  @Column({ name: 'nome', type: String })
+  name: string;
 
-  @Column({ name: 'codigo_car', type: String })
-  codigoCar: string;
+  @Column({ nullable: true, type: 'text' })
+  objective?: string | null;
 
-  @Column({
-    type: 'geometry',
-    spatialFeatureType: 'Polygon',
-    srid: 4326,
+  @ManyToOne(() => AffectedAreaEntity, {
+    eager: true,
+    nullable: true,
   })
-  poligono: Polygon;
+  @JoinColumn({ name: 'affected_area_id' })
+  affectedArea?: AffectedAreaEntity | null;
 
   @ManyToOne(() => UserEntity, {
     eager: true,
     nullable: false,
   })
   @JoinColumn({ name: 'tecnico_id' })
-  tecnico: UserEntity;
+  assignedTo: UserEntity;
 
-  @Column({ default: 'pending', type: String })
+  @ManyToOne(() => UserEntity, {
+    eager: true,
+    nullable: true,
+  })
+  @JoinColumn({ name: 'created_by' })
+  createdBy?: UserEntity | null;
+
+  @Column({ default: 'scheduled', type: String })
   status: string;
+
+  @Column({ default: 'normal', type: String })
+  priority: string;
+
+  @Column({ name: 'due_date', nullable: true, type: 'date' })
+  dueDate?: Date | null;
 
   @CreateDateColumn()
   createdAt: Date;

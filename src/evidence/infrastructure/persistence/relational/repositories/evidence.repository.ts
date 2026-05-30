@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { EvidenceEntity } from '../entities/evidence.entity';
 import { NullableType } from '../../../../../utils/types/nullable.type';
+import { DeepPartial } from '../../../../../utils/types/deep-partial.type';
 import { Evidence } from '../../../../domain/evidence';
 import { EvidenceRepository } from '../../evidence.repository';
 import { EvidenceMapper } from '../mappers/evidence.mapper';
@@ -54,7 +55,7 @@ export class EvidenceRelationalRepository implements EvidenceRepository {
 
   async update(
     id: Evidence['id'],
-    payload: Partial<Evidence>,
+    payload: DeepPartial<Evidence>,
   ): Promise<Evidence> {
     const entity = await this.evidenceRepository.findOne({
       where: { id },
@@ -69,7 +70,7 @@ export class EvidenceRelationalRepository implements EvidenceRepository {
         EvidenceMapper.toPersistence({
           ...EvidenceMapper.toDomain(entity),
           ...payload,
-        }),
+        } as Evidence),
       ),
     );
 

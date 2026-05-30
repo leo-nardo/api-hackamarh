@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { MissionEntity } from '../entities/mission.entity';
 import { NullableType } from '../../../../../utils/types/nullable.type';
+import { DeepPartial } from '../../../../../utils/types/deep-partial.type';
 import { Mission } from '../../../../domain/mission';
 import { MissionRepository } from '../../mission.repository';
 import { MissionMapper } from '../mappers/mission.mapper';
@@ -52,7 +53,10 @@ export class MissionRelationalRepository implements MissionRepository {
     return entities.map((entity) => MissionMapper.toDomain(entity));
   }
 
-  async update(id: Mission['id'], payload: Partial<Mission>): Promise<Mission> {
+  async update(
+    id: Mission['id'],
+    payload: DeepPartial<Mission>,
+  ): Promise<Mission> {
     const entity = await this.missionRepository.findOne({
       where: { id },
     });
@@ -66,7 +70,7 @@ export class MissionRelationalRepository implements MissionRepository {
         MissionMapper.toPersistence({
           ...MissionMapper.toDomain(entity),
           ...payload,
-        }),
+        } as Mission),
       ),
     );
 

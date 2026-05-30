@@ -3,8 +3,11 @@ import {
   Injectable,
   UnprocessableEntityException,
 } from '@nestjs/common';
+import { CollectionPoint } from '../collection-points/domain/collection-point';
 import { MissionsService } from '../missions/missions.service';
+import { User } from '../users/domain/user';
 import { IPaginationOptions } from '../utils/types/pagination-options';
+import { DeepPartial } from '../utils/types/deep-partial.type';
 import { CreateEvidenceDto } from './dto/create-evidence.dto';
 import { UpdateEvidenceDto } from './dto/update-evidence.dto';
 import { Evidence } from './domain/evidence';
@@ -22,10 +25,21 @@ export class EvidenceService {
 
     return this.evidenceRepository.create({
       mission,
-      coordenada: createEvidenceDto.coordenada,
+      collectionPoint: createEvidenceDto.collectionPoint
+        ? ({ id: createEvidenceDto.collectionPoint.id } as CollectionPoint)
+        : null,
+      technician: createEvidenceDto.technician
+        ? ({ id: createEvidenceDto.technician.id } as User)
+        : null,
+      location: createEvidenceDto.location,
       fotoUrl: createEvidenceDto.fotoUrl,
-      timestamp: createEvidenceDto.timestamp,
-      mortalidadeTaxa: createEvidenceDto.mortalidadeTaxa,
+      capturedAt: createEvidenceDto.capturedAt,
+      submittedAt: createEvidenceDto.submittedAt,
+      mortalityRate: createEvidenceDto.mortalityRate,
+      faseSucessional: createEvidenceDto.faseSucessional,
+      metodoRestauracao: createEvidenceDto.metodoRestauracao,
+      notes: createEvidenceDto.notes,
+      validationStatus: createEvidenceDto.validationStatus ?? 'pending',
     } as Evidence);
   }
 
@@ -52,10 +66,21 @@ export class EvidenceService {
 
   async update(id: Evidence['id'], updateEvidenceDto: UpdateEvidenceDto) {
     const payload: Partial<Evidence> = {
-      coordenada: updateEvidenceDto.coordenada,
+      collectionPoint: updateEvidenceDto.collectionPoint
+        ? ({ id: updateEvidenceDto.collectionPoint.id } as CollectionPoint)
+        : undefined,
+      technician: updateEvidenceDto.technician
+        ? ({ id: updateEvidenceDto.technician.id } as User)
+        : undefined,
+      location: updateEvidenceDto.location,
       fotoUrl: updateEvidenceDto.fotoUrl,
-      timestamp: updateEvidenceDto.timestamp,
-      mortalidadeTaxa: updateEvidenceDto.mortalidadeTaxa,
+      capturedAt: updateEvidenceDto.capturedAt,
+      submittedAt: updateEvidenceDto.submittedAt,
+      mortalityRate: updateEvidenceDto.mortalityRate,
+      faseSucessional: updateEvidenceDto.faseSucessional,
+      metodoRestauracao: updateEvidenceDto.metodoRestauracao,
+      notes: updateEvidenceDto.notes,
+      validationStatus: updateEvidenceDto.validationStatus,
     };
 
     if (updateEvidenceDto.mission) {
@@ -64,7 +89,7 @@ export class EvidenceService {
       );
     }
 
-    return this.evidenceRepository.update(id, payload);
+    return this.evidenceRepository.update(id, payload as DeepPartial<Evidence>);
   }
 
   remove(id: Evidence['id']) {

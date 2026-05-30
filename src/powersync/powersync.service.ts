@@ -31,7 +31,6 @@ type ColumnMapping = {
   column: string;
   sourceKeys: string[];
   geometry?: 'Point' | 'Polygon';
-  fallback?: (user: JwtPayloadType) => unknown;
 };
 
 @Injectable()
@@ -218,12 +217,20 @@ export class PowersyncService {
     data: Record<string, unknown>,
     user: JwtPayloadType,
   ): Record<string, unknown> {
-    if (table !== 'mission') {
-      return data;
+    if (table === 'mission') {
+      return {
+        tecnico_id: user.id,
+        created_by: user.id,
+        priority: 'normal',
+        status: 'scheduled',
+        ...data,
+      };
     }
 
     return {
-      tecnico_id: user.id,
+      technician_id: user.id,
+      submitted_at: new Date().toISOString(),
+      validation_status: 'pending',
       ...data,
     };
   }
@@ -339,30 +346,104 @@ export class PowersyncService {
         { column: 'nome', sourceKeys: ['nome', 'name'] },
         { column: 'codigo_car', sourceKeys: ['codigo_car', 'codigoCar'] },
         {
+          column: 'affected_area_id',
+          sourceKeys: ['affected_area_id', 'affectedAreaId'],
+        },
+        { column: 'objective', sourceKeys: ['objective', 'objetivo'] },
+        {
           column: 'poligono',
           sourceKeys: ['poligono', 'polygon'],
           geometry: 'Polygon',
         },
         {
           column: 'tecnico_id',
-          sourceKeys: ['tecnico_id', 'tecnicoId', 'technicianId'],
+          sourceKeys: [
+            'tecnico_id',
+            'tecnicoId',
+            'assigned_to',
+            'assignedTo',
+            'assignedToId',
+            'technicianId',
+          ],
+        },
+        {
+          column: 'created_by',
+          sourceKeys: ['created_by', 'createdBy', 'createdById'],
         },
         { column: 'status', sourceKeys: ['status'] },
+        { column: 'priority', sourceKeys: ['priority', 'prioridade'] },
+        { column: 'due_date', sourceKeys: ['due_date', 'dueDate'] },
       ];
     }
 
     return [
       { column: 'mission_id', sourceKeys: ['mission_id', 'missionId'] },
       {
+        column: 'collection_point_id',
+        sourceKeys: ['collection_point_id', 'collectionPointId'],
+      },
+      {
+        column: 'technician_id',
+        sourceKeys: [
+          'technician_id',
+          'technicianId',
+          'tecnico_id',
+          'tecnicoId',
+        ],
+      },
+      {
         column: 'coordenada',
-        sourceKeys: ['coordenada', 'coordinate', 'coordinates'],
+        sourceKeys: [
+          'coordenada',
+          'location',
+          'coordinate',
+          'coordinates',
+          'gps',
+        ],
         geometry: 'Point',
       },
       { column: 'foto_url', sourceKeys: ['foto_url', 'fotoUrl', 'photoUrl'] },
-      { column: 'timestamp', sourceKeys: ['timestamp'] },
+      {
+        column: 'timestamp',
+        sourceKeys: ['timestamp', 'captured_at', 'capturedAt'],
+      },
+      {
+        column: 'submitted_at',
+        sourceKeys: ['submitted_at', 'submittedAt'],
+      },
       {
         column: 'mortalidade_taxa',
-        sourceKeys: ['mortalidade_taxa', 'mortalidadeTaxa', 'mortalityRate'],
+        sourceKeys: [
+          'mortalidade_taxa',
+          'mortalidadeTaxa',
+          'mortality_rate',
+          'mortalityRate',
+        ],
+      },
+      {
+        column: 'fase_sucessional',
+        sourceKeys: ['fase_sucessional', 'faseSucessional'],
+      },
+      {
+        column: 'metodo_restauracao',
+        sourceKeys: ['metodo_restauracao', 'metodoRestauracao'],
+      },
+      { column: 'notes', sourceKeys: ['notes', 'observacao', 'observations'] },
+      {
+        column: 'validation_status',
+        sourceKeys: ['validation_status', 'validationStatus'],
+      },
+      {
+        column: 'validation_reason',
+        sourceKeys: ['validation_reason', 'validationReason'],
+      },
+      {
+        column: 'validated_by',
+        sourceKeys: ['validated_by', 'validatedBy', 'validatedById'],
+      },
+      {
+        column: 'validated_at',
+        sourceKeys: ['validated_at', 'validatedAt'],
       },
     ];
   }
