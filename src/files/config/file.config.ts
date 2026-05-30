@@ -1,6 +1,12 @@
 import { registerAs } from '@nestjs/config';
 
-import { IsEnum, IsString, ValidateIf } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsOptional,
+  IsString,
+  ValidateIf,
+} from 'class-validator';
 import validateConfig from '../../utils/validate-config';
 import { FileDriver, FileConfig } from './file-config.type';
 
@@ -26,6 +32,14 @@ class EnvironmentVariablesValidator {
   @IsString()
   AWS_DEFAULT_S3_BUCKET: string;
 
+  @IsOptional()
+  @IsString()
+  AWS_S3_ENDPOINT?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  AWS_S3_FORCE_PATH_STYLE?: boolean;
+
   @ValidateIf((envValues) =>
     [FileDriver.S3, FileDriver.S3_PRESIGNED].includes(envValues.FILE_DRIVER),
   )
@@ -42,6 +56,10 @@ export default registerAs<FileConfig>('file', () => {
     accessKeyId: process.env.ACCESS_KEY_ID,
     secretAccessKey: process.env.SECRET_ACCESS_KEY,
     awsDefaultS3Bucket: process.env.AWS_DEFAULT_S3_BUCKET,
+    awsS3Endpoint: process.env.AWS_S3_ENDPOINT,
+    awsS3ForcePathStyle: process.env.AWS_S3_FORCE_PATH_STYLE
+      ? process.env.AWS_S3_FORCE_PATH_STYLE === 'true'
+      : undefined,
     awsS3Region: process.env.AWS_S3_REGION,
     maxFileSize: 5242880, // 5mb
   };

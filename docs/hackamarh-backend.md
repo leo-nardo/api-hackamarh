@@ -17,6 +17,14 @@ Chosen stack:
 - Docker Compose for local infrastructure.
 - PowerSync-compatible endpoints for offline-first mobile sync.
 
+Storage:
+
+- Local upload remains the safe default for development.
+- S3-compatible upload now supports a custom endpoint through
+  `AWS_S3_ENDPOINT`, which allows Cloudflare R2.
+- For R2, use `AWS_S3_REGION=auto`, `AWS_S3_FORCE_PATH_STYLE=true` and
+  `AWS_DEFAULT_S3_BUCKET=<bucket-name>`.
+
 The current domain targets the hackathon's restoration and degraded-area
 monitoring scenario:
 
@@ -191,6 +199,21 @@ POWERSYNC_JWT_AUDIENCE=powersync
 POWERSYNC_JWT_KEY_ID=hackamarh-dev
 POWERSYNC_URL=
 ```
+
+R2-compatible storage variables:
+
+```env
+FILE_DRIVER=s3
+ACCESS_KEY_ID=<cloudflare-r2-access-key-id>
+SECRET_ACCESS_KEY=<cloudflare-r2-secret-access-key>
+AWS_S3_REGION=auto
+AWS_DEFAULT_S3_BUCKET=arara-bucket
+AWS_S3_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
+AWS_S3_FORCE_PATH_STYLE=true
+```
+
+Do not commit real database URLs or storage keys. Use local `.env` or the
+deployment platform's secret manager.
 
 For the hackathon MVP this uses HS256/shared-secret signing through Nest's
 `JwtService`. For production, asymmetric keys and JWKS should be considered.
