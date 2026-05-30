@@ -16,10 +16,6 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { JwtPayloadType } from '../auth/strategies/types/jwt-payload.type';
-import {
-  PowerSyncOperationDto,
-  PowerSyncUploadDto,
-} from './dto/powersync-upload.dto';
 import { PowersyncService } from './powersync.service';
 
 @ApiTags('PowerSync')
@@ -49,7 +45,7 @@ export class PowersyncController {
   @Post('data')
   @HttpCode(HttpStatus.OK)
   syncBatch(
-    @Body() body: PowerSyncUploadDto | PowerSyncOperationDto[],
+    @Body() body: Record<string, unknown> | Record<string, unknown>[],
     @Req() request: { user: JwtPayloadType },
   ) {
     return this.powersyncService.upload(body, request.user);
@@ -58,7 +54,7 @@ export class PowersyncController {
   @Post('upload')
   @HttpCode(HttpStatus.OK)
   syncUploadAlias(
-    @Body() body: PowerSyncUploadDto | PowerSyncOperationDto[],
+    @Body() body: Record<string, unknown> | Record<string, unknown>[],
     @Req() request: { user: JwtPayloadType },
   ) {
     return this.powersyncService.upload(body, request.user);
@@ -67,7 +63,7 @@ export class PowersyncController {
   @Put('data')
   @HttpCode(HttpStatus.OK)
   putData(
-    @Body() body: PowerSyncOperationDto,
+    @Body() body: Record<string, unknown>,
     @Req() request: { user: JwtPayloadType },
   ) {
     return this.powersyncService.upload(body, request.user, { op: 'PUT' });
@@ -77,7 +73,7 @@ export class PowersyncController {
   @HttpCode(HttpStatus.OK)
   putTableData(
     @Param('table') table: string,
-    @Body() body: PowerSyncOperationDto,
+    @Body() body: Record<string, unknown>,
     @Req() request: { user: JwtPayloadType },
   ) {
     return this.powersyncService.upload(body, request.user, {
@@ -89,7 +85,7 @@ export class PowersyncController {
   @Patch('data')
   @HttpCode(HttpStatus.OK)
   patchData(
-    @Body() body: PowerSyncOperationDto,
+    @Body() body: Record<string, unknown>,
     @Req() request: { user: JwtPayloadType },
   ) {
     return this.powersyncService.upload(body, request.user, { op: 'PATCH' });
@@ -99,7 +95,7 @@ export class PowersyncController {
   @HttpCode(HttpStatus.OK)
   patchTableData(
     @Param('table') table: string,
-    @Body() body: PowerSyncOperationDto,
+    @Body() body: Record<string, unknown>,
     @Req() request: { user: JwtPayloadType },
   ) {
     return this.powersyncService.upload(body, request.user, {
@@ -111,7 +107,7 @@ export class PowersyncController {
   @Delete('data')
   @HttpCode(HttpStatus.OK)
   deleteData(
-    @Body() body: PowerSyncOperationDto,
+    @Body() body: Record<string, unknown>,
     @Req() request: { user: JwtPayloadType },
   ) {
     return this.powersyncService.upload(body, request.user, { op: 'DELETE' });

@@ -394,15 +394,13 @@ export class PowersyncService {
     value: unknown,
     type: 'Point' | 'Polygon',
   ): Record<string, unknown> {
+    let geometry: Record<string, unknown>;
+
     if (typeof value === 'string') {
-      return JSON.parse(value) as Record<string, unknown>;
-    }
-
-    if (Array.isArray(value)) {
-      return { type, coordinates: value };
-    }
-
-    if (
+      geometry = JSON.parse(value) as Record<string, unknown>;
+    } else if (Array.isArray(value)) {
+      geometry = { type, coordinates: value };
+    } else if (
       type === 'Point' &&
       value &&
       typeof value === 'object' &&
@@ -410,16 +408,35 @@ export class PowersyncService {
       ('longitude' in value || 'lng' in value)
     ) {
       const coordinate = value as Record<string, unknown>;
-      return {
+      geometry = {
         type,
         coordinates: [
           coordinate.longitude ?? coordinate.lng,
           coordinate.latitude ?? coordinate.lat,
         ],
       };
+    } else {
+      geometry = value as Record<string, unknown>;
     }
 
-    return value as Record<string, unknown>;
+    if (
+      type === 'Polygon' &&
+      Array.isArray(geometry.coordinates) &&
+      this.isCoordinatePair(geometry.coordinates[0])
+    ) {
+      geometry.coordinates = [geometry.coordinates];
+    }
+
+    return geometry;
+  }
+
+  private isCoordinatePair(value: unknown): value is [number, number] {
+    return (
+      Array.isArray(value) &&
+      value.length >= 2 &&
+      typeof value[0] === 'number' &&
+      typeof value[1] === 'number'
+    );
   }
 
   private firstDefined(
