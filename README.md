@@ -33,6 +33,9 @@ PowerSync integration endpoints:
 
 Hackamarh backend documentation: [docs/hackamarh-backend.md](/docs/hackamarh-backend.md)
 
+First mobile photo flow plan:
+[docs/collection-point-photo-backend-plan.md](/docs/collection-point-photo-backend-plan.md)
+
 Demo: <https://nestjs-boilerplate-test.herokuapp.com/docs>
 
 A fully compatible frontend boilerplate: <https://github.com/brocoders/extensive-react-boilerplate>
