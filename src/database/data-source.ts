@@ -12,16 +12,15 @@ const getSslConfig = () => {
     rejectUnauthorized: process.env.DATABASE_REJECT_UNAUTHORIZED === 'true',
   };
 
-  if (process.env.DATABASE_CA) {
-    const caPath = path.isAbsolute(process.env.DATABASE_CA)
-      ? process.env.DATABASE_CA
-      : path.join(process.cwd(), process.env.DATABASE_CA);
+  const caFile = process.env.DATABASE_CA || 'ca.pem';
+  const caPath = path.isAbsolute(caFile)
+    ? caFile
+    : path.join(process.cwd(), caFile);
 
-    if (fs.existsSync(caPath)) {
-      sslConfig.ca = fs.readFileSync(caPath, 'utf8');
-    } else {
-      sslConfig.ca = process.env.DATABASE_CA;
-    }
+  if (fs.existsSync(caPath)) {
+    sslConfig.ca = fs.readFileSync(caPath, 'utf8');
+  } else if (process.env.DATABASE_CA) {
+    sslConfig.ca = process.env.DATABASE_CA;
   }
 
   if (process.env.DATABASE_KEY) {
