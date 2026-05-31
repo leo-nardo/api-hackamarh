@@ -8,7 +8,7 @@ Este projeto marca uma jornada de inovação onde o **ser humano atuou exclusiva
 
 ### Como o projeto foi construído:
 - **Arquiteto (Humano)**: Responsável pelo direcionamento estratégico, regras de negócio e visão técnica. **Nenhuma linha de código foi escrita manualmente pelo arquiteto.**
-- **Codex Agent (IA)**: Utilizando modelos **Gemini 1.5 Pro**, o agente interpretou as instruções e o arquivo `project-spec.md` para implementar, de forma autônoma, toda a lógica de negócio, integrações geoespaciais e correções de infraestrutura.
+- **Codex Agent (IA)**: Utilizando modelos **Gemini 3.1 Pro** e **chatgpt 5.3**, os agentes interpretaram as instruções e o arquivo `project-spec.md` para implementar, de forma autônoma, toda a lógica de negócio, integrações geoespaciais e correções de infraestrutura.
 - **Skills de Domínio**: Foram utilizadas habilidades especializadas para garantir que a IA seguisse os padrões NestJS e as especificações técnicas da SEMARH.
 - **Fundação Técnica**: O código foi construído sobre o [brocoders/nestjs-boilerplate](https://github.com/brocoders/nestjs-boilerplate), reaproveitando as bases sólidas de autenticação e infraestrutura preexistentes, enquanto todo o novo domínio ambiental foi gerado pela IA sob demanda.
 
