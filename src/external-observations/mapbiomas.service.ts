@@ -22,7 +22,7 @@ export class MapBiomasService {
     try {
       this.logger.log(`Buscando alertas MapBiomas para o CAR: ${carCode}`);
       const { data } = await firstValueFrom(this.httpService.get(url));
-      
+
       const savedObservations: any[] = [];
 
       if (Array.isArray(data)) {
@@ -61,11 +61,11 @@ export class MapBiomasService {
    */
   async fetchLulcHistory(carCode: string) {
     this.logger.log(`Buscando histórico LULC para o CAR: ${carCode}`);
-    
+
     // Em um cenário de produção, aqui faríamos uma integração com o Google Earth Engine
-    // ou com a API de Coleções do MapBiomas. 
+    // ou com a API de Coleções do MapBiomas.
     // Para o MVP Hackamarh, retornamos um histórico estruturado que permite a auditoria.
-    
+
     const history = [
       { year: 2020, class: 'Pasture', color: '#F5DEB3' },
       { year: 2021, class: 'Pasture', color: '#F5DEB3' },
@@ -122,15 +122,15 @@ export class MapBiomasService {
    * Gera uma URL de imagem de satélite real (Sentinel-2) para uma coordenada específica.
    * Útil para o analista ver o "antes" e "depois" de um ponto de coleta.
    */
-  async getSatelliteImageryForPoint(lat: number, lon: number, date?: string) {
+  getSatelliteImageryForPoint(lat: number, lon: number, date?: string) {
     const targetDate = date || new Date().toISOString().split('T')[0];
-    
+
     // Usando o Sentinel Hub Playground ou similar (URL de visualização pública)
     // Para um hackathon, esta é a forma mais rápida de renderizar um tile de satélite real.
     // BBOX (Bounding Box) de ~500m ao redor do ponto
     const delta = 0.005;
     const bbox = `${lon - delta},${lat - delta},${lon + delta},${lat + delta}`;
-    
+
     // Esta é uma URL de preview que muitos sistemas de monitoramento usam
     const imageryUrl = `https://services.sentinel-hub.com/ogc/wms/v1/a9ad278c-579c-4824-814d-17e764a85966?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&FORMAT=image/jpeg&TRANSPARENT=true&LAYERS=TRUE-COLOR&TIME=${targetDate}/${targetDate}&STYLES=&SRS=EPSG:4326&BBOX=${bbox}&WIDTH=512&HEIGHT=512`;
 

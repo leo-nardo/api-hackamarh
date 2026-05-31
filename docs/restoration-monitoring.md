@@ -20,11 +20,28 @@ O backend agora processa três níveis de informação para cada propriedade (CA
 - **Frequência de Fogo**: Analisa se a área é alvo constante de queimadas, o que compromete a restauração.
 - **Conectividade**: Mede se a área em restauração está se conectando a fragmentos florestais vizinhos.
 
-## 3. Fluxo de Trabalho do Engenheiro
-1. O engenheiro cadastra o **CAR** e a **Meta do PRAD** (Ex: 40% de cobertura em 5 anos).
-2. O sistema sincroniza os dados do MapBiomas.
-3. O sistema compara o dado do satélite com as fotos e métricas coletadas pelo técnico no campo via App Flutter.
-4. **Relatório de Conformidade**: O sistema gera um parecer automático indicando se a área está evoluindo conforme o planejado ou se precisa de intervenção.
+## 3. Dashboard de Auditoria (Fluxo do Analista)
+Para facilitar o trabalho do gestor florestal, implementamos um endpoint de **Triangulação de Dados** (`GET /api/v1/compliances/audit-summary/:carCode`). 
 
-## 4. Colaboração com o Ecossistema
-Os dados de "Verdade de Campo" (fotos georreferenciadas e densidade de regenerantes) coletados pelo nosso sistema podem ser futuramente fornecidos ao MapBiomas para ajudar no treinamento de seus algoritmos de classificação, criando um ciclo positivo de dados de alta qualidade.
+Este painel organiza as informações em três pilares:
+
+### A. Visão de Satélite (MapBiomas + Sentinel-2)
+- **Classe Atual**: Confirma se a área é classificada como "Vegetação Secundária".
+- **Tempo de Regeneração**: Quantos anos o satélite detecta crescimento ativo.
+- **Histórico de Fogo**: Frequência de queimadas nos últimos 10 anos.
+
+### B. Visão de Campo (App Flutter)
+- **Evidências Fotográficas**: Fotos reais georreferenciadas do local.
+- **Taxa de Mortalidade**: Média reportada pelo técnico em campo.
+- **Notas Técnicas**: Observações qualitativas do técnico (ex: presença de pragas).
+
+### C. Inteligência de Recomendação (Conformidade)
+O sistema cruza os dados e sugere um status:
+- 🟢 **CONFORME (GREEN)**: Quando o satélite confirma a regeneração (>= 2 anos) E o campo confirma baixa mortalidade (< 20%).
+- 🟡 **EM REVISÃO (YELLOW)**: Quando os dados são inconclusivos ou há poucas evidências de campo.
+- 🔴 **NÃO CONFORME (RED)**: Quando há alertas de desmatamento recentes ou alta mortalidade/fogo recorrente.
+
+## 4. Benefícios para a SEMARH/TO
+- **Agilidade**: O analista não precisa abrir 5 sistemas diferentes (MapBiomas, Planet, SICAR, etc.). Tudo está consolidado.
+- **Segurança Jurídica**: O relatório de auditoria serve como prova técnica de que o PRAD está sendo cumprido, unindo o dado automatizado com o dado humano.
+- **Colaboração**: Os dados de campo retroalimentam a inteligência do sistema, aumentando a precisão das futuras análises.
