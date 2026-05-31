@@ -1,4 +1,3 @@
-console.log('--- NODE PROCESS INITIALIZED ---');
 import 'dotenv/config';
 import {
   ClassSerializerInterceptor,
@@ -9,14 +8,22 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { useContainer } from 'class-validator';
-import { AppModule } from './app.module';
 import validationOptions from './utils/validation-options';
 import { AllConfigType } from './config/config.type';
 import { ResolvePromisesInterceptor } from './utils/serializer.interceptor';
 
 async function bootstrap() {
+  console.log('--- BOOTSTRAP PHASE 1: Process Started ---');
+  
   try {
+    // Carregamento dinâmico do AppModule para capturar erros de importação/validação
+    console.log('--- BOOTSTRAP PHASE 2: Loading AppModule... ---');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { AppModule } = require('./app.module');
+    
+    console.log('--- BOOTSTRAP PHASE 3: Creating Nest Instance... ---');
     const app = await NestFactory.create(AppModule, { cors: true });
+    
     useContainer(app.select(AppModule), { fallbackOnErrors: true });
     const configService = app.get(ConfigService<AllConfigType>);
 
@@ -32,8 +39,6 @@ async function bootstrap() {
     });
     app.useGlobalPipes(new ValidationPipe(validationOptions));
     app.useGlobalInterceptors(
-      // ResolvePromisesInterceptor is used to resolve promises in responses because class-transformer can't do it
-      // https://github.com/typestack/class-transformer/issues/549
       new ResolvePromisesInterceptor(),
       new ClassSerializerInterceptor(app.get(Reflector)),
     );
@@ -57,12 +62,19 @@ async function bootstrap() {
     SwaggerModule.setup('docs', app, document);
 
     const port = configService.getOrThrow('app.port', { infer: true });
-    console.log(`Application is starting on port ${port}...`);
+    console.log(`--- BOOTSTRAP SUCCESS: Application starting on port ${port} ---`);
     await app.listen(port);
   } catch (error) {
-    console.error('FATAL ERROR DURING BOOTSTRAP:');
-    console.error(error);
+    console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+    console.log('FATAL ERROR DURING BOOTSTRAP / MODULE LOADING:');
+    console.log(error);
+    if (error.stack) console.log(error.stack);
+    console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+    
+    // Pequeno atraso para garantir que o log seja enviado ao Render
+    await new Promise(resolve => setTimeout(resolve, 5000));
     process.exit(1);
   }
 }
+
 void bootstrap();
