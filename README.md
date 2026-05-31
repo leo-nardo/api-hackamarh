@@ -1,19 +1,16 @@
-# ARARA - Sistema de Monitoramento Ambiental (Backend) 🌳🚀
+# ARARA - Acompanhamento Remoto de Áreas de Recuperação Ambiental 🌳🚀
 
 Backend robusto desenvolvido para o **Hackamarh (Hackathon SEMARH/TO)**, focado no **Eixo 2: Monitoramento de Áreas em Recuperação**. Este sistema integra inteligência de dados satelitais, evidências de campo e automação via IA para transformar o monitoramento ambiental no Tocantins.
 
-## 🤖 Desenvolvimento Assistido por IA (Jornada Codex & Gemini)
+## 🤖 Engenharia 100% Autônoma (Direcionamento Humano + IA)
 
-Este projeto foi construído utilizando uma abordagem pioneira de **Engenharia Autônoma**, orquestrada pelo agente **Codex** (utilizando modelos **Gemini 1.5 Pro**).
+Este projeto marca uma jornada de inovação onde o **ser humano atuou exclusivamente como Arquiteto e Engenheiro de Prompt**, enquanto a **IA executou 100% da implementação técnica**.
 
-### Como a IA foi utilizada:
-- **Codex Agent**: Atuou como o arquiteto principal, realizando mudanças cirúrgicas no código, resolvendo bugs de infraestrutura (SSL, PostGIS) e integrando módulos complexos.
-- **Skills Customizadas**: Foram utilizadas habilidades especializadas (`hackamarh-workflow`, `generate`) para garantir que o código seguisse os padrões NestJS e as especificações técnicas do edital.
-- **Project Spec (`project-spec.md`)**: A IA consumiu uma especificação técnica detalhada para implementar, de forma autônoma, o modelo de dados georreferenciado e as integrações de satélite.
-- **Resolução de Conflitos**: A IA gerenciou o merge entre as necessidades do Frontend (Next.js) e as capacidades do Backend (NestJS), criando camadas de compatibilidade dinâmica.
-
-## 🏗️ Origem Técnica
-Este projeto utiliza como fundação o [brocoders/nestjs-boilerplate](https://github.com/brocoders/nestjs-boilerplate), do qual extraímos a base sólida de autenticação, infraestrutura de banco de dados e padrões REST. Agradecemos à equipe do Brocoders pela base excelente.
+### Como o projeto foi construído:
+- **Arquiteto (Humano)**: Responsável pelo direcionamento estratégico, regras de negócio e visão técnica. **Nenhuma linha de código foi escrita manualmente pelo arquiteto.**
+- **Codex Agent (IA)**: Utilizando modelos **Gemini 1.5 Pro**, o agente interpretou as instruções e o arquivo `project-spec.md` para implementar, de forma autônoma, toda a lógica de negócio, integrações geoespaciais e correções de infraestrutura.
+- **Skills de Domínio**: Foram utilizadas habilidades especializadas para garantir que a IA seguisse os padrões NestJS e as especificações técnicas da SEMARH.
+- **Fundação Técnica**: O código foi construído sobre o [brocoders/nestjs-boilerplate](https://github.com/brocoders/nestjs-boilerplate), reaproveitando as bases sólidas de autenticação e infraestrutura preexistentes, enquanto todo o novo domínio ambiental foi gerado pela IA sob demanda.
 
 ## 🚀 Funcionalidades Chave (Eixo 2)
 
@@ -36,15 +33,14 @@ Este projeto utiliza como fundação o [brocoders/nestjs-boilerplate](https://gi
 
 ## 🛠️ Stack Tecnológica
 - **Linguagem**: TypeScript
-- **Framework**: NestJS (com SWC para build de alta performance no Render)
+- **Framework**: NestJS (com SWC para performance no Render)
 - **Banco de Dados**: PostgreSQL + PostGIS (Hospedado na Aiven Cloud)
 - **Infraestrutura**: Docker Compose & Render
 - **Integração Satelital**: Sentinel-Hub / MapBiomas
 
 ## 📖 Documentação Detalhada
-Para detalhes técnicos de cada módulo e guia de integração PowerSync, consulte:
 - [Guia de Monitoramento de Recuperação](docs/restoration-monitoring.md)
-- [Documentação Técnica do Backend](docs/hackamarh-backend.md)
+- [Jornada de Desenvolvimento Backend](docs/hackamarh-backend.md)
 - [Plano de Fotos de Campo](docs/collection-point-photo-backend-plan.md)
 
 ---
