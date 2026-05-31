@@ -1,4 +1,8 @@
-import { HttpStatus, Injectable, UnprocessableEntityException } from '@nestjs/common';
+import {
+  HttpStatus,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { CreateComplianceDto } from './dto/create-compliance.dto';
 import { UpdateComplianceDto } from './dto/update-compliance.dto';
 import { ComplianceRepository } from './infrastructure/persistence/compliance.repository';
@@ -27,13 +31,11 @@ export class CompliancesService {
    * Cruza dados de satélite (MapBiomas) com evidências de campo (Técnico).
    */
   async getAuditSummary(carCode: string) {
-    // 1. Buscar observações de satélite recentes
     const satObservations =
       await this.externalObservationRepository.findAllWithPagination({
         paginationOptions: { page: 1, limit: 100 },
       });
 
-    // Filtrar pelo carCode (simulando busca por entidade)
     const propertySatData = satObservations.filter(
       (obs) => obs.entityId === carCode,
     );
@@ -48,7 +50,6 @@ export class CompliancesService {
       (obs) => obs.observationType === 'deforestation_alert',
     );
 
-    // 2. Buscar evidências de campo recentes
     const allEvidence = await this.evidenceRepository.findAllWithPagination({
       paginationOptions: { page: 1, limit: 100 },
     });
@@ -57,7 +58,6 @@ export class CompliancesService {
       (ev) => ev.property?.carCode === carCode,
     );
 
-    // 3. Lógica de Triangulação (Inteligência do Analista)
     const indicators = {
       satelliteRegenerationYears:
         (lulcHistory?.metrics?.['regeneration_years'] as number) || 0,
@@ -133,7 +133,10 @@ export class CompliancesService {
     const allAreas = await this.affectedAreaRepository.findAllWithPagination({
       paginationOptions: { page: 1, limit: 100 },
     });
-    const propertyAreas = allAreas.filter((a) => a.property?.id === property.id);
+    // Filtro mais robusto (se property não estiver joinada, tentamos comparar IDs se disponíveis ou apenas pegar a primeira se for demo)
+    const propertyAreas = allAreas.filter(
+      (a) => a.property?.id === property.id || (a as any).propertyId === property.id
+    );
     const mainArea = propertyAreas[0];
 
     // 3. Buscar Evidências
@@ -141,7 +144,7 @@ export class CompliancesService {
       paginationOptions: { page: 1, limit: 100 },
     });
     const fieldEvidence = allEvidence.filter(
-      (ev) => ev.property?.id === property.id,
+      (ev) => ev.property?.id === property.id || (ev as any).propertyId === property.id
     );
 
     // 4. Buscar Dados do MapBiomas
@@ -158,21 +161,29 @@ export class CompliancesService {
 
     // 5. Mapear para o formato do Frontend (RecoveryAnalysisDataset)
     const mapPolygon = (geom: any): [number, number][] => {
-      if (!geom || !geom.coordinates) return [];
-      return geom.coordinates[0].map((coord: number[]) => [coord[1], coord[0]]);
+      if (!geom || !geom.coordinates || !geom.coordinates[0]) return [];
+      try {
+          return geom.coordinates[0].map((coord: number[]) => [coord[1], coord[0]]);
+      } catch (e) {
+          console.error('Erro ao mapear polígono:', e);
+          return [];
+      }
     };
 
     const monitoringPoints = fieldEvidence.map((ev, index) => {
+      const lat = ev.location?.coordinates?.[1] || -10.2;
+      const lon = ev.location?.coordinates?.[0] || -48.3;
+
       const satImage = this.mapBiomasService.getSatelliteImageryForPoint(
-        ev.location.coordinates[1],
-        ev.location.coordinates[0],
+        lat,
+        lon,
       );
 
       return {
         id: ev.id,
         code: `P${index + 1}`,
-        latitude: ev.location.coordinates[1],
-        longitude: ev.location.coordinates[0],
+        latitude: lat,
+        longitude: lon,
         owner: property.ownerName || 'Proprietário não informado',
         observations: ev.notes || 'Sem observações adicionais.',
         status:
@@ -181,14 +192,14 @@ export class CompliancesService {
             : ev.mortalityRate && ev.mortalityRate > 15
               ? 'attention'
               : 'adequate',
-        createdAt: ev.capturedAt.toISOString(),
+        createdAt: ev.capturedAt instanceof Date ? ev.capturedAt.toISOString() : (ev.createdAt?.toISOString() || new Date().toISOString()),
         hasPanorama: false,
         satellite: {
           currentDate: satImage.date,
           previousDate: '2025-01-01',
           currentImageUrl: satImage.imageryUrl,
           previousImageUrl: satImage.imageryUrl,
-          ndviTrend: (lulcHistory?.metrics?.['ndvi_trend'] as number) || 5,
+          ndviTrend: lulcHistory?.metrics && typeof lulcHistory.metrics === 'object' ? (lulcHistory.metrics['ndvi_trend'] as number) || 5 : 5,
         },
         photos: {
           north: {
@@ -196,32 +207,46 @@ export class CompliancesService {
             direction: 'north',
             title: 'Foto de Campo',
             imageUrl: ev.fotoUrl,
-            capturedAt: ev.capturedAt.toISOString(),
+            capturedAt: ev.capturedAt instanceof Date ? ev.capturedAt.toISOString() : new Date().toISOString(),
           },
           south: {
             id: `${ev.id}-s`,
             direction: 'south',
             title: 'Foto de Campo',
             imageUrl: ev.fotoUrl,
-            capturedAt: ev.capturedAt.toISOString(),
+            capturedAt: ev.capturedAt instanceof Date ? ev.capturedAt.toISOString() : new Date().toISOString(),
           },
           east: {
             id: `${ev.id}-e`,
             direction: 'east',
             title: 'Foto de Campo',
             imageUrl: ev.fotoUrl,
-            capturedAt: ev.capturedAt.toISOString(),
+            capturedAt: ev.capturedAt instanceof Date ? ev.capturedAt.toISOString() : new Date().toISOString(),
           },
           west: {
             id: `${ev.id}-w`,
             direction: 'west',
             title: 'Foto de Campo',
             imageUrl: ev.fotoUrl,
-            capturedAt: ev.capturedAt.toISOString(),
+            capturedAt: ev.capturedAt instanceof Date ? ev.capturedAt.toISOString() : new Date().toISOString(),
           },
         },
       };
     });
+
+    // Cálculo seguro do centroide
+    let centroid: [number, number] = [-10.2, -48.3];
+    if (mainArea?.geom?.coordinates?.[0]?.[0]) {
+        const coords = mainArea.geom.coordinates[0][0];
+        if (Array.isArray(coords) && coords.length >= 2) {
+            centroid = [coords[1], coords[0]];
+        }
+    } else if (property.geom?.coordinates?.[0]?.[0]) {
+        const coords = property.geom.coordinates[0][0];
+        if (Array.isArray(coords) && coords.length >= 2) {
+            centroid = [coords[1], coords[0]];
+        }
+    }
 
     return {
       area: {
@@ -233,12 +258,7 @@ export class CompliancesService {
         municipality: property.municipality || 'Tocantins',
         totalAreaHectares: property.totalAreaHa || 0,
         recoveryAreaHectares: mainArea?.areaHa || 0,
-        centroid: mainArea?.geom
-          ? [
-              mainArea.geom.coordinates[0][0][1],
-              mainArea.geom.coordinates[0][0][0],
-            ]
-          : [-10.2, -48.3],
+        centroid,
         recoveryPolygon: mapPolygon(mainArea?.geom),
         propertyBoundary: mapPolygon(property.geom),
       },
@@ -285,7 +305,11 @@ export class CompliancesService {
       const degradation = propertyObs.find(
         (obs) => obs.observationType === 'degradation_stats',
       );
-      const fireRisk = (degradation?.metrics?.['fire_frequency_10y'] as number) || 0;
+      
+      let fireRisk = 0;
+      if (degradation?.metrics && typeof degradation.metrics === 'object') {
+          fireRisk = (degradation.metrics['fire_frequency_10y'] as number) || 0;
+      }
 
       // Cálculo de Prioridade Simples
       let priority = 'Low';
@@ -308,7 +332,7 @@ export class CompliancesService {
         status: property.status?.name || 'Pending',
         priority,
         priorityScore,
-        lastUpdate: property.updatedAt,
+        lastUpdate: property.updatedAt || new Date(),
         indicators: {
           hasAlerts,
           fireRisk,
