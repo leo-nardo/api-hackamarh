@@ -2,16 +2,37 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
 import { AllConfigType } from '../config/config.type';
+import fs from 'fs';
+import path from 'path';
 
 @Injectable()
 export class TypeOrmConfigService implements TypeOrmOptionsFactory {
   constructor(private readonly configService: ConfigService<AllConfigType>) {}
 
+  private getCertContent(certConfig?: string | null): string | undefined {
+    if (!certConfig) return undefined;
+    
+    // Se o valor fornecido for um caminho de arquivo existente, lê o arquivo
+    const fullPath = path.resolve(process.cwd(), certConfig);
+    if (fs.existsSync(fullPath)) {
+      return fs.readFileSync(fullPath, 'utf8');
+    }
+    
+    // Caso contrário, assume que o valor já é o conteúdo do certificado
+    return certConfig;
+  }
+
   createTypeOrmOptions(): TypeOrmModuleOptions {
+    const ca = this.getCertContent(this.configService.get('database.ca', { infer: true }));
+    const key = this.getCertContent(this.configService.get('database.key', { infer: true }));
+    const cert = this.getCertContent(this.configService.get('database.cert', { infer: true }));
+
     return {
       type:
         this.configService.get('database.type', { infer: true }) ?? 'postgres',
-      url: this.configService.get('database.url', { infer: true }),
+      url: this.configService.get('database.host', { infer: true })
+        ? undefined
+        : this.configService.get('database.url', { infer: true }),
       host: this.configService.get('database.host', { infer: true }),
       port: this.configService.get('database.port', { infer: true }),
       username: this.configService.get('database.username', { infer: true }),
@@ -42,15 +63,9 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
                 'database.rejectUnauthorized',
                 { infer: true },
               ),
-              ca:
-                this.configService.get('database.ca', { infer: true }) ??
-                undefined,
-              key:
-                this.configService.get('database.key', { infer: true }) ??
-                undefined,
-              cert:
-                this.configService.get('database.cert', { infer: true }) ??
-                undefined,
+              ca,
+              key,
+              cert,
             }
           : undefined,
       },
