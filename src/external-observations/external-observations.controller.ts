@@ -28,6 +28,8 @@ import {
 import { infinityPagination } from '../utils/infinity-pagination';
 import { FindAllExternalObservationsDto } from './dto/find-all-external-observations.dto';
 
+import { MapBiomasService } from './mapbiomas.service';
+
 @ApiTags('Externalobservations')
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
@@ -38,7 +40,74 @@ import { FindAllExternalObservationsDto } from './dto/find-all-external-observat
 export class ExternalObservationsController {
   constructor(
     private readonly externalObservationsService: ExternalObservationsService,
+    private readonly mapBiomasService: MapBiomasService,
   ) {}
+
+  @Post('sync-mapbiomas/:carCode')
+  @ApiParam({
+    name: 'carCode',
+    type: String,
+    required: true,
+  })
+  @ApiCreatedResponse({
+    description:
+      'Sincroniza alertas, histórico LULC e métricas de degradação do MapBiomas para o CAR informado.',
+  })
+  async syncMapBiomas(@Param('carCode') carCode: string) {
+    const alerts = await this.mapBiomasService.fetchAlertsByCar(carCode);
+    const history = await this.mapBiomasService.fetchLulcHistory(carCode);
+    const degradation = await this.mapBiomasService.fetchDegradationMetrics(
+      carCode,
+    );
+
+    return {
+      alerts,
+      history,
+      degradation,
+      message: 'Sincronização com MapBiomas concluída com sucesso.',
+    };
+  }
+
+  @Get('satellite-imagery')
+  @ApiOkResponse({
+    description: 'Retorna a URL de uma imagem de satélite Sentinel-2 real para o ponto.',
+  })
+  getSatelliteImagery(
+    @Query('lat') lat: number,
+    @Query('lon') lon: number,
+    @Query('date') date?: string,
+  ) {
+    return this.mapBiomasService.getSatelliteImageryForPoint(
+      Number(lat),
+      Number(lon),
+      date,
+    );
+  }
+
+  @Post('simulate-satellite/:entityType/:entityId')
+  @ApiParam({
+    name: 'entityType',
+    type: String,
+    required: true,
+    description: 'Ex: AffectedArea, CollectionPoint',
+  })
+  @ApiParam({
+    name: 'entityId',
+    type: String,
+    required: true,
+  })
+  @ApiCreatedResponse({
+    type: ExternalObservation,
+  })
+  simulateSatelliteFetch(
+    @Param('entityType') entityType: string,
+    @Param('entityId') entityId: string,
+  ) {
+    return this.externalObservationsService.simulateSatelliteFetch(
+      entityId,
+      entityType,
+    );
+  }
 
   @Post()
   @ApiCreatedResponse({
