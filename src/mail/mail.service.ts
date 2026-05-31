@@ -166,4 +166,27 @@ export class MailService {
       },
     });
   }
+
+  async sendInviteCode(
+    mailData: MailData<{ code: string; firstName: string }>,
+  ): Promise<void> {
+    await this.mailerService.sendMail({
+      to: mailData.to,
+      subject: 'Seu código de acesso ao Sistema Arara',
+      text: `Olá ${mailData.data.firstName}, seu código de acesso é ${mailData.data.code}`,
+      templatePath: path.join(
+        this.configService.getOrThrow('app.workingDirectory', {
+          infer: true,
+        }),
+        'src',
+        'mail',
+        'mail-templates',
+        'invite-owner.hbs',
+      ),
+      context: {
+        firstName: mailData.data.firstName,
+        code: mailData.data.code,
+      },
+    });
+  }
 }

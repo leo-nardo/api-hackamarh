@@ -8,6 +8,18 @@ const idType = Number;
 
 export class User {
   @ApiProperty({
+    type: () => Date,
+    nullable: true,
+  })
+  inviteExpires?: Date | null;
+
+  @ApiProperty({
+    type: () => String,
+    nullable: true,
+  })
+  inviteCode?: string | null;
+
+  @ApiProperty({
     type: idType,
   })
   id: number;

@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { InviteOwnerDto } from './dto/invite-owner.dto';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -37,7 +38,7 @@ import { RolesGuard } from '../roles/roles.guard';
 import { infinityPagination } from '../utils/infinity-pagination';
 
 @ApiBearerAuth()
-@Roles(RoleEnum.admin)
+@Roles(RoleEnum.admin, RoleEnum.analyst, RoleEnum.manager)
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 @ApiTags('Users')
 @Controller({
@@ -46,6 +47,15 @@ import { infinityPagination } from '../utils/infinity-pagination';
 })
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Post('invite-owner')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiCreatedResponse({
+    type: User,
+  })
+  inviteOwner(@Body() inviteDto: InviteOwnerDto): Promise<User> {
+    return this.usersService.inviteOwner(inviteDto);
+  }
 
   @ApiCreatedResponse({
     type: User,

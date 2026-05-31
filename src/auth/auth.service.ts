@@ -11,6 +11,7 @@ import { randomStringGenerator } from '@nestjs/common/utils/random-string-genera
 import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcryptjs';
 import { AuthEmailLoginDto } from './dto/auth-email-login.dto';
+import { AuthEmailLoginCodeDto } from './dto/auth-email-login-code.dto';
 import { AuthUpdateDto } from './dto/auth-update.dto';
 import { AuthProvidersEnum } from './auth-providers.enum';
 import { SocialInterface } from '../social/interfaces/social.interface';
@@ -82,6 +83,70 @@ export class AuthService {
         },
       });
     }
+
+    const hash = crypto
+      .createHash('sha256')
+      .update(randomStringGenerator())
+      .digest('hex');
+
+    const session = await this.sessionService.create({
+      user,
+      hash,
+    });
+
+    const { token, refreshToken, tokenExpires } = await this.getTokensData({
+      id: user.id,
+      role: user.role,
+      sessionId: session.id,
+      hash,
+    });
+
+    return {
+      refreshToken,
+      token,
+      tokenExpires,
+      user,
+    };
+  }
+
+  async validateLoginCode(
+    loginDto: AuthEmailLoginCodeDto,
+  ): Promise<LoginResponseDto> {
+    const user = await this.usersService.findByEmail(loginDto.email);
+
+    if (!user) {
+      throw new UnprocessableEntityException({
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+        errors: {
+          email: 'notFound',
+        },
+      });
+    }
+
+    if (!user.inviteCode || user.inviteCode !== loginDto.code) {
+      throw new UnprocessableEntityException({
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+        errors: {
+          code: 'invalidCode',
+        },
+      });
+    }
+
+    if (user.inviteExpires && user.inviteExpires < new Date()) {
+      throw new UnprocessableEntityException({
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+        errors: {
+          code: 'codeExpired',
+        },
+      });
+    }
+
+    // Limpar o código após o uso
+    await this.usersService.update(user.id, {
+      inviteCode: null,
+      inviteExpires: null,
+      status: { id: StatusEnum.active },
+    });
 
     const hash = crypto
       .createHash('sha256')

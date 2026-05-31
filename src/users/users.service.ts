@@ -18,12 +18,22 @@ import { FileType } from '../files/domain/file';
 import { Role } from '../roles/domain/role';
 import { Status } from '../statuses/domain/status';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { InviteOwnerDto } from './dto/invite-owner.dto';
+import { MailService } from '../mail/mail.service';
+import { PropertyRepository } from '../properties/infrastructure/persistence/property.repository';
+import { PropertyUserRepository } from '../property-users/infrastructure/persistence/property-user.repository';
+import { MapBiomasService } from '../external-observations/mapbiomas.service';
+import crypto from 'crypto';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly usersRepository: UserRepository,
     private readonly filesService: FilesService,
+    private readonly mailService: MailService,
+    private readonly propertyRepository: PropertyRepository,
+    private readonly propertyUserRepository: PropertyUserRepository,
+    private readonly mapBiomasService: MapBiomasService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -116,6 +126,10 @@ export class UsersService {
     return this.usersRepository.create({
       // Do not remove comment below.
       // <creating-property-payload />
+      inviteExpires: createUserDto.inviteExpires,
+
+      inviteCode: createUserDto.inviteCode,
+
       firstName: createUserDto.firstName,
       lastName: createUserDto.lastName,
       email: email,
@@ -270,6 +284,10 @@ export class UsersService {
     return this.usersRepository.update(id, {
       // Do not remove comment below.
       // <updating-property-payload />
+      inviteExpires: updateUserDto.inviteExpires,
+
+      inviteCode: updateUserDto.inviteCode,
+
       firstName: updateUserDto.firstName,
       lastName: updateUserDto.lastName,
       email,
@@ -280,6 +298,85 @@ export class UsersService {
       provider: updateUserDto.provider,
       socialId: updateUserDto.socialId,
     });
+  }
+
+  async inviteOwner(inviteDto: InviteOwnerDto): Promise<User> {
+    // 1. Verificar se a propriedade já existe pelo CAR
+    const properties = await this.propertyRepository.findManyWithPagination({
+      paginationOptions: { page: 1, limit: 10 },
+    });
+    // Nota: Idealmente o repository teria um findByCarCode
+    let property = properties.find((p) => p.carCode === inviteDto.carCode);
+
+    if (!property) {
+      // Se não existir, criamos uma básica
+      property = await this.propertyRepository.create({
+        carCode: inviteDto.carCode,
+        name: inviteDto.propertyName || `Propriedade ${inviteDto.carCode}`,
+        source: 'engineer_invite',
+      });
+    }
+
+    // 2. Criar ou buscar o usuário
+    let user = await this.usersRepository.findByEmail(inviteDto.email);
+    const inviteCode = crypto.randomBytes(3).toString('hex').toUpperCase(); // Ex: A1B2C3
+    const inviteExpires = new Date();
+    inviteExpires.setHours(inviteExpires.getHours() + 24);
+
+    if (!user) {
+      user = await this.usersRepository.create({
+        email: inviteDto.email,
+        firstName: inviteDto.firstName,
+        lastName: inviteDto.lastName,
+        role: { id: RoleEnum.user },
+        status: { id: StatusEnum.inactive },
+        provider: AuthProvidersEnum.email,
+        inviteCode,
+        inviteExpires,
+      });
+    } else {
+      // Atualiza o código se o usuário já existir
+      user = await this.usersRepository.update(user.id, {
+        inviteCode,
+        inviteExpires,
+      });
+    }
+
+    // 3. Vincular usuário à propriedade
+    // Verificar se já existe vínculo
+    const propertyUsers =
+      await this.propertyUserRepository.findAllWithPagination({
+        paginationOptions: { page: 1, limit: 100 },
+      });
+
+    const existingLink = propertyUsers.find(
+      (pu) => pu.user?.id === user?.id && pu.property?.id === property?.id,
+    );
+
+    if (!existingLink && user) {
+      await this.propertyUserRepository.create({
+        user,
+        property,
+        role: 'owner',
+        canSubmitEvidence: true,
+        canManageProperty: true,
+      });
+    }
+
+    // 4. Disparar E-mail
+    await this.mailService.sendInviteCode({
+      to: inviteDto.email,
+      data: {
+        code: inviteCode,
+        firstName: inviteDto.firstName,
+      },
+    });
+
+    // 5. Trigger MapBiomas Sync em background (opcional, mas recomendado)
+    void this.mapBiomasService.fetchLulcHistory(inviteDto.carCode);
+    void this.mapBiomasService.fetchDegradationMetrics(inviteDto.carCode);
+
+    return user!;
   }
 
   async remove(id: User['id']): Promise<void> {
