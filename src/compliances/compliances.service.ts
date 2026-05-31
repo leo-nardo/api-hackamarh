@@ -117,7 +117,7 @@ export class CompliancesService {
    */
   async getRecoveryAnalysis(carCode: string) {
     // 1. Buscar Propriedade
-    const properties = await this.propertyRepository.findManyWithPagination({
+    const properties = await this.propertyRepository.findAllWithPagination({
       paginationOptions: { page: 1, limit: 100 },
     });
     const property = properties.find((p) => p.carCode === carCode);
@@ -265,7 +265,7 @@ export class CompliancesService {
    * Retorna propriedades com indicadores de risco (fogo, desmatamento) para orientar o trabalho.
    */
   async getComplianceQueue() {
-    const properties = await this.propertyRepository.findManyWithPagination({
+    const properties = await this.propertyRepository.findAllWithPagination({
       paginationOptions: { page: 1, limit: 100 },
     });
 
