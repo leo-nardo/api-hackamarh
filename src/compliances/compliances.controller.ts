@@ -38,6 +38,20 @@ import { FindAllCompliancesDto } from './dto/find-all-compliances.dto';
 export class CompliancesController {
   constructor(private readonly compliancesService: CompliancesService) {}
 
+  @Get('recovery-analysis/:carCode')
+  @ApiParam({
+    name: 'carCode',
+    type: String,
+    required: true,
+  })
+  @ApiOkResponse({
+    description:
+      'Retorna o dataset completo de análise de recuperação no formato esperado pelo Frontend.',
+  })
+  getRecoveryAnalysis(@Param('carCode') carCode: string) {
+    return this.compliancesService.getRecoveryAnalysis(carCode);
+  }
+
   @Get('audit-summary/:carCode')
   @ApiParam({
     name: 'carCode',

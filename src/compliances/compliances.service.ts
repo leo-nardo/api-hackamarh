@@ -1,8 +1,4 @@
-import {
-  HttpStatus,
-  Injectable,
-  UnprocessableEntityException,
-} from '@nestjs/common';
+import { HttpStatus, Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { CreateComplianceDto } from './dto/create-compliance.dto';
 import { UpdateComplianceDto } from './dto/update-compliance.dto';
 import { ComplianceRepository } from './infrastructure/persistence/compliance.repository';
@@ -11,6 +7,9 @@ import { Compliance } from './domain/compliance';
 import { ExternalObservationRepository } from '../external-observations/infrastructure/persistence/external-observation.repository';
 import { EvidenceRepository } from '../evidence/infrastructure/persistence/evidence.repository';
 import { DeepPartial } from '../utils/types/deep-partial.type';
+import { AffectedAreaRepository } from '../affected-areas/infrastructure/persistence/affected-area.repository';
+import { PropertyRepository } from '../properties/infrastructure/persistence/property.repository';
+import { MapBiomasService } from '../external-observations/mapbiomas.service';
 
 @Injectable()
 export class CompliancesService {
@@ -18,6 +17,9 @@ export class CompliancesService {
     private readonly complianceRepository: ComplianceRepository,
     private readonly externalObservationRepository: ExternalObservationRepository,
     private readonly evidenceRepository: EvidenceRepository,
+    private readonly affectedAreaRepository: AffectedAreaRepository,
+    private readonly propertyRepository: PropertyRepository,
+    private readonly mapBiomasService: MapBiomasService,
   ) {}
 
   /**
@@ -106,6 +108,155 @@ export class CompliancesService {
         reason: recommendationReason,
         status: recommendation.split(' ')[0], // GREEN, YELLOW, RED
       },
+    };
+  }
+
+  /**
+   * Endpoint de Compatibilidade para o Front-Arara.
+   * Transforma nossos dados reais no formato do mock esperado pelo frontend.
+   */
+  async getRecoveryAnalysis(carCode: string) {
+    // 1. Buscar Propriedade
+    const properties = await this.propertyRepository.findManyWithPagination({
+      paginationOptions: { page: 1, limit: 100 },
+    });
+    const property = properties.find((p) => p.carCode === carCode);
+
+    if (!property) {
+      throw new UnprocessableEntityException({
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+        errors: { property: 'notFound' },
+      });
+    }
+
+    // 2. Buscar Áreas Afetadas vinculadas
+    const allAreas = await this.affectedAreaRepository.findAllWithPagination({
+      paginationOptions: { page: 1, limit: 100 },
+    });
+    const propertyAreas = allAreas.filter((a) => a.property?.id === property.id);
+    const mainArea = propertyAreas[0];
+
+    // 3. Buscar Evidências
+    const allEvidence = await this.evidenceRepository.findAllWithPagination({
+      paginationOptions: { page: 1, limit: 100 },
+    });
+    const fieldEvidence = allEvidence.filter(
+      (ev) => ev.property?.id === property.id,
+    );
+
+    // 4. Buscar Dados do MapBiomas
+    const satObservations =
+      await this.externalObservationRepository.findAllWithPagination({
+        paginationOptions: { page: 1, limit: 100 },
+      });
+    const propertySatData = satObservations.filter(
+      (obs) => obs.entityId === carCode,
+    );
+    const lulcHistory = propertySatData.find(
+      (obs) => obs.observationType === 'lulc_history',
+    );
+
+    // 5. Mapear para o formato do Frontend (RecoveryAnalysisDataset)
+    const mapPolygon = (geom: any): [number, number][] => {
+      if (!geom || !geom.coordinates) return [];
+      return geom.coordinates[0].map((coord: number[]) => [coord[1], coord[0]]);
+    };
+
+    const monitoringPoints = fieldEvidence.map((ev, index) => {
+      const satImage = this.mapBiomasService.getSatelliteImageryForPoint(
+        ev.location.coordinates[1],
+        ev.location.coordinates[0],
+      );
+
+      return {
+        id: ev.id,
+        code: `P${index + 1}`,
+        latitude: ev.location.coordinates[1],
+        longitude: ev.location.coordinates[0],
+        owner: property.ownerName || 'Proprietário não informado',
+        observations: ev.notes || 'Sem observações adicionais.',
+        status:
+          ev.mortalityRate && ev.mortalityRate > 30
+            ? 'critical'
+            : ev.mortalityRate && ev.mortalityRate > 15
+              ? 'attention'
+              : 'adequate',
+        createdAt: ev.capturedAt.toISOString(),
+        hasPanorama: false,
+        satellite: {
+          currentDate: satImage.date,
+          previousDate: '2025-01-01',
+          currentImageUrl: satImage.imageryUrl,
+          previousImageUrl: satImage.imageryUrl,
+          ndviTrend: (lulcHistory?.metrics?.['ndvi_trend'] as number) || 5,
+        },
+        photos: {
+          north: {
+            id: `${ev.id}-n`,
+            direction: 'north',
+            title: 'Foto de Campo',
+            imageUrl: ev.fotoUrl,
+            capturedAt: ev.capturedAt.toISOString(),
+          },
+          south: {
+            id: `${ev.id}-s`,
+            direction: 'south',
+            title: 'Foto de Campo',
+            imageUrl: ev.fotoUrl,
+            capturedAt: ev.capturedAt.toISOString(),
+          },
+          east: {
+            id: `${ev.id}-e`,
+            direction: 'east',
+            title: 'Foto de Campo',
+            imageUrl: ev.fotoUrl,
+            capturedAt: ev.capturedAt.toISOString(),
+          },
+          west: {
+            id: `${ev.id}-w`,
+            direction: 'west',
+            title: 'Foto de Campo',
+            imageUrl: ev.fotoUrl,
+            capturedAt: ev.capturedAt.toISOString(),
+          },
+        },
+      };
+    });
+
+    return {
+      area: {
+        id: property.id,
+        semarhCode: `CAR-${property.carCode.substring(0, 8)}`,
+        name: property.name,
+        propertyName: property.name,
+        owner: property.ownerName || 'Não informado',
+        municipality: property.municipality || 'Tocantins',
+        totalAreaHectares: property.totalAreaHa || 0,
+        recoveryAreaHectares: mainArea?.areaHa || 0,
+        centroid: mainArea?.geom
+          ? [
+              mainArea.geom.coordinates[0][0][1],
+              mainArea.geom.coordinates[0][0][0],
+            ]
+          : [-10.2, -48.3],
+        recoveryPolygon: mapPolygon(mainArea?.geom),
+        propertyBoundary: mapPolygon(property.geom),
+      },
+      monitoringPoints,
+      timeline: [
+        {
+          id: 'current',
+          label: 'Atual',
+          daysAgo: 0,
+          capturedAt: new Date().toISOString().split('T')[0],
+        },
+        {
+          id: '30-days',
+          label: '30 dias',
+          daysAgo: 30,
+          capturedAt: '2026-04-30',
+        },
+      ],
     };
   }
 

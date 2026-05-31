@@ -8,12 +8,14 @@ import { CompliancesController } from './compliances.controller';
 import { RelationalCompliancePersistenceModule } from './infrastructure/persistence/relational/relational-persistence.module';
 import { ExternalObservationsModule } from '../external-observations/external-observations.module';
 import { EvidenceModule } from '../evidence/evidence.module';
+import { AffectedAreasModule } from '../affected-areas/affected-areas.module';
 
 @Module({
   imports: [
     RelationalCompliancePersistenceModule,
     forwardRef(() => ExternalObservationsModule),
     EvidenceModule,
+    AffectedAreasModule,
   ],
   controllers: [CompliancesController],
   providers: [CompliancesService],
