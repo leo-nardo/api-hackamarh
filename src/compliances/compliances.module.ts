@@ -1,6 +1,7 @@
 import {
   // do not remove this comment
   Module,
+  forwardRef,
 } from '@nestjs/common';
 import { CompliancesService } from './compliances.service';
 import { CompliancesController } from './compliances.controller';
@@ -11,7 +12,7 @@ import { EvidenceModule } from '../evidence/evidence.module';
 @Module({
   imports: [
     RelationalCompliancePersistenceModule,
-    ExternalObservationsModule,
+    forwardRef(() => ExternalObservationsModule),
     EvidenceModule,
   ],
   controllers: [CompliancesController],

@@ -44,6 +44,8 @@ const infrastructureDatabaseModule = TypeOrmModule.forRootAsync({
   },
 });
 
+import { CompliancesModule } from './compliances/compliances.module';
+
 @Module({
   imports: [
     MissionSchedulesModule,
@@ -106,6 +108,7 @@ const infrastructureDatabaseModule = TypeOrmModule.forRootAsync({
     EvidenceModule,
     PowersyncModule,
     MobileModule,
+    CompliancesModule,
   ],
 })
 export class AppModule {}

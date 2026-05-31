@@ -8,6 +8,8 @@ import {
   Delete,
   UseGuards,
   Query,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { ExternalObservationsService } from './external-observations.service';
 import { CreateExternalObservationDto } from './dto/create-external-observation.dto';
@@ -40,6 +42,7 @@ import { MapBiomasService } from './mapbiomas.service';
 export class ExternalObservationsController {
   constructor(
     private readonly externalObservationsService: ExternalObservationsService,
+    @Inject(forwardRef(() => MapBiomasService))
     private readonly mapBiomasService: MapBiomasService,
   ) {}
 
@@ -56,9 +59,8 @@ export class ExternalObservationsController {
   async syncMapBiomas(@Param('carCode') carCode: string) {
     const alerts = await this.mapBiomasService.fetchAlertsByCar(carCode);
     const history = await this.mapBiomasService.fetchLulcHistory(carCode);
-    const degradation = await this.mapBiomasService.fetchDegradationMetrics(
-      carCode,
-    );
+    const degradation =
+      await this.mapBiomasService.fetchDegradationMetrics(carCode);
 
     return {
       alerts,
@@ -70,7 +72,8 @@ export class ExternalObservationsController {
 
   @Get('satellite-imagery')
   @ApiOkResponse({
-    description: 'Retorna a URL de uma imagem de satélite Sentinel-2 real para o ponto.',
+    description:
+      'Retorna a URL de uma imagem de satélite Sentinel-2 real para o ponto.',
   })
   getSatelliteImagery(
     @Query('lat') lat: number,
