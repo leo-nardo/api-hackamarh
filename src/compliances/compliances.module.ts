@@ -9,6 +9,7 @@ import { RelationalCompliancePersistenceModule } from './infrastructure/persiste
 import { ExternalObservationsModule } from '../external-observations/external-observations.module';
 import { EvidenceModule } from '../evidence/evidence.module';
 import { AffectedAreasModule } from '../affected-areas/affected-areas.module';
+import { PropertiesModule } from '../properties/properties.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AffectedAreasModule } from '../affected-areas/affected-areas.module';
     forwardRef(() => ExternalObservationsModule),
     EvidenceModule,
     AffectedAreasModule,
+    PropertiesModule,
   ],
   controllers: [CompliancesController],
   providers: [CompliancesService],
