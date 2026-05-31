@@ -10,23 +10,14 @@ else
 fi
 
 if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
-  echo "Running migrations with SSL fail-safe..."
-  NODE_TLS_REJECT_UNAUTHORIZED=0 ./node_modules/.bin/ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js --dataSource=src/database/data-source.ts migration:run
+  echo "Running migrations from dist (Production mode)..."
+  NODE_TLS_REJECT_UNAUTHORIZED=0 node ./node_modules/typeorm/cli.js --dataSource=dist/database/data-source.js migration:run || { echo "Migration failed, but attempting to start app anyway..."; }
 fi
 
-if [ -z "${RUN_SEEDS+x}" ]; then
-  if [ "${NODE_ENV:-development}" = "production" ]; then
-    RUN_SEEDS=false
-  else
-    RUN_SEEDS=true
-  fi
+if [ "${RUN_SEEDS:-false}" = "true" ]; then
+  echo "Running seeds from dist..."
+  NODE_TLS_REJECT_UNAUTHORIZED=0 node dist/database/seeds/relational/run-seed.js
 fi
 
-if [ "${RUN_SEEDS}" = "true" ]; then
-  echo "Running seeds with SSL fail-safe..."
-  NODE_TLS_REJECT_UNAUTHORIZED=0 npm run seed:run:relational
-else
-  echo "Skipping seed execution."
-fi
-
+echo "Starting application on port ${PORT:-3000}..."
 npm run start:prod
