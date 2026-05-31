@@ -8,6 +8,7 @@ import { ExternalObservationRepository } from './infrastructure/persistence/exte
 import { IPaginationOptions } from '../utils/types/pagination-options';
 import { ExternalObservation } from './domain/external-observation';
 import { DeepPartial } from '../utils/types/deep-partial.type';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class ExternalObservationsService {
@@ -15,6 +16,35 @@ export class ExternalObservationsService {
     // Dependencies here
     private readonly externalObservationRepository: ExternalObservationRepository,
   ) {}
+
+  async simulateSatelliteFetch(entityId: string, entityType: string) {
+    // MOCK: Simula a chamada a uma API de Satélite (Ex: Planet, Sentinel, MapBiomas)
+    // Na vida real, usaríamos o polígono da entidade (ex: AffectedArea) para buscar a imagem recortada.
+
+    // Gera uma data aleatória nos últimos 30 dias
+    const date = new Date();
+    date.setDate(date.getDate() - Math.floor(Math.random() * 30));
+
+    const simulatedObservation: ExternalObservation = {
+      id: uuidv4(),
+      source: 'sentinel-2-mock',
+      observationType: 'satellite_image',
+      entityType: entityType,
+      entityId: entityId,
+      observedAt: date,
+      metrics: {
+        ndvi: 0.45, // Índice de Vegetação (0 a 1)
+        cloudCover: 12.5, // % de nuvens
+        resolutionMeters: 10,
+        imageUrl: 'https://cdn.esa.int/sentinel2/mock_image_forest.jpg', // URL real viria da API
+      },
+      confidenceScore: 0.95,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    return this.externalObservationRepository.create(simulatedObservation);
+  }
 
   async create(createExternalObservationDto: CreateExternalObservationDto) {
     // Do not remove comment below.

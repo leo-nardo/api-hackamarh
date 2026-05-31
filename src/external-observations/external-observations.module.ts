@@ -1,7 +1,6 @@
 import {
   // do not remove this comment
   Module,
-  forwardRef,
 } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { ExternalObservationsService } from './external-observations.service';

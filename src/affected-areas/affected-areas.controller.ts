@@ -29,8 +29,8 @@ import { infinityPagination } from '../utils/infinity-pagination';
 import { FindAllAffectedAreasDto } from './dto/find-all-affected-areas.dto';
 
 @ApiTags('Affectedareas')
-@ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
+// @ApiBearerAuth()
+// @UseGuards(AuthGuard('jwt'))
 @Controller({
   path: 'affected-areas',
   version: '1',

@@ -33,8 +33,8 @@ import { FindAllExternalObservationsDto } from './dto/find-all-external-observat
 import { MapBiomasService } from './mapbiomas.service';
 
 @ApiTags('Externalobservations')
-@ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
+// @ApiBearerAuth()
+// @UseGuards(AuthGuard('jwt'))
 @Controller({
   path: 'external-observations',
   version: '1',

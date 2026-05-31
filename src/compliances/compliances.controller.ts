@@ -66,8 +66,8 @@ export class CompliancesController {
     return this.compliancesService.getRecoveryAnalysis(carCode);
   }
 
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
+  // @ApiBearerAuth()
+  // @UseGuards(AuthGuard('jwt'))
   @Get('audit-summary/:carCode')
   @ApiParam({
     name: 'carCode',

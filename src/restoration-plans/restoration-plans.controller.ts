@@ -29,8 +29,8 @@ import { infinityPagination } from '../utils/infinity-pagination';
 import { FindAllRestorationPlansDto } from './dto/find-all-restoration-plans.dto';
 
 @ApiTags('Restorationplans')
-@ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
+// @ApiBearerAuth()
+// @UseGuards(AuthGuard('jwt'))
 @Controller({
   path: 'restoration-plans',
   version: '1',

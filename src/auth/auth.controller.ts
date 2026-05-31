@@ -99,12 +99,12 @@ export class AuthController {
     );
   }
 
-  @ApiBearerAuth()
+  // @ApiBearerAuth()
   @SerializeOptions({
     groups: ['me'],
   })
   @Get('me')
-  @UseGuards(AuthGuard('jwt'))
+  // @UseGuards(AuthGuard('jwt'))
   @ApiOkResponse({
     type: User,
   })
@@ -113,7 +113,7 @@ export class AuthController {
     return this.service.me(request.user);
   }
 
-  @ApiBearerAuth()
+  // @ApiBearerAuth()
   @ApiOkResponse({
     type: RefreshResponseDto,
   })
@@ -121,7 +121,7 @@ export class AuthController {
     groups: ['me'],
   })
   @Post('refresh')
-  @UseGuards(AuthGuard('jwt-refresh'))
+  // @UseGuards(AuthGuard('jwt-refresh'))
   @HttpCode(HttpStatus.OK)
   public refresh(@Request() request): Promise<RefreshResponseDto> {
     return this.service.refreshToken({
@@ -130,9 +130,9 @@ export class AuthController {
     });
   }
 
-  @ApiBearerAuth()
+  // @ApiBearerAuth()
   @Post('logout')
-  @UseGuards(AuthGuard('jwt'))
+  // @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.NO_CONTENT)
   public async logout(@Request() request): Promise<void> {
     await this.service.logout({
@@ -140,12 +140,12 @@ export class AuthController {
     });
   }
 
-  @ApiBearerAuth()
+  // @ApiBearerAuth()
   @SerializeOptions({
     groups: ['me'],
   })
   @Patch('me')
-  @UseGuards(AuthGuard('jwt'))
+  // @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({
     type: User,
@@ -157,9 +157,9 @@ export class AuthController {
     return this.service.update(request.user, userDto);
   }
 
-  @ApiBearerAuth()
+  // @ApiBearerAuth()
   @Delete('me')
-  @UseGuards(AuthGuard('jwt'))
+  // @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.NO_CONTENT)
   public async delete(@Request() request): Promise<void> {
     return this.service.softDelete(request.user);

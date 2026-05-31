@@ -80,4 +80,8 @@ export class EvidenceRelationalRepository implements EvidenceRepository {
   async remove(id: Evidence['id']): Promise<void> {
     await this.evidenceRepository.delete(id);
   }
+
+  async executeRawQuery(query: string, parameters?: any[]): Promise<any> {
+    return this.evidenceRepository.query(query, parameters);
+  }
 }

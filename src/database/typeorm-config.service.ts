@@ -26,7 +26,10 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
     let caConfig = this.configService.get('database.ca', { infer: true });
 
     // Fallback para ca.pem na raiz se nada for fornecido mas o SSL estiver ligado
-    if (!caConfig && this.configService.get('database.sslEnabled', { infer: true })) {
+    if (
+      !caConfig &&
+      this.configService.get('database.sslEnabled', { infer: true })
+    ) {
       const defaultCaPath = path.resolve(process.cwd(), 'ca.pem');
       if (fs.existsSync(defaultCaPath)) {
         caConfig = 'ca.pem';

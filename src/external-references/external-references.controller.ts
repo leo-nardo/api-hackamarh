@@ -29,8 +29,8 @@ import { infinityPagination } from '../utils/infinity-pagination';
 import { FindAllExternalReferencesDto } from './dto/find-all-external-references.dto';
 
 @ApiTags('Externalreferences')
-@ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
+// @ApiBearerAuth()
+// @UseGuards(AuthGuard('jwt'))
 @Controller({
   path: 'external-references',
   version: '1',

@@ -16,8 +16,8 @@ export class FilesS3PresignedController {
   @ApiCreatedResponse({
     type: FileResponseDto,
   })
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
+  // @ApiBearerAuth()
+  // @UseGuards(AuthGuard('jwt'))
   @Post('upload')
   async uploadFile(@Body() file: FileUploadDto) {
     return this.filesService.create(file);

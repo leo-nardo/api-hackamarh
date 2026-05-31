@@ -28,9 +28,9 @@ import {
 import { infinityPagination } from '../utils/infinity-pagination';
 import { FindAllEvidenceDto } from './dto/find-all-evidence.dto';
 
-@ApiTags('Evidences')
-@ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
+@ApiTags('Evidence')
+// @ApiBearerAuth()
+// @UseGuards(AuthGuard('jwt'))
 @Controller({
   path: 'evidences',
   version: '1',

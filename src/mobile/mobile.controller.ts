@@ -11,8 +11,8 @@ import { JwtPayloadType } from '../auth/strategies/types/jwt-payload.type';
 import { MobileService } from './mobile.service';
 
 @ApiTags('Mobile')
-@ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
+// @ApiBearerAuth()
+// @UseGuards(AuthGuard('jwt'))
 @Controller({
   path: 'mobile',
   version: VERSION_NEUTRAL,

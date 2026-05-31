@@ -46,8 +46,9 @@ export class DemoSeedService {
   }
 
   private async ensureProperty(): Promise<PropertyEntity> {
+    const carCode = 'TO-1721000-C36D0001D696444AA0C94E914C0C46E6';
     const existing = await this.propertyRepository.findOne({
-      where: { carCode: 'TO-DEMO-0001' },
+      where: { carCode },
     });
 
     if (existing) {
@@ -56,8 +57,8 @@ export class DemoSeedService {
 
     return this.propertyRepository.save(
       this.propertyRepository.create({
-        carCode: 'TO-DEMO-0001',
-        externalCode: 'SIGCAR-DEMO-0001',
+        carCode,
+        externalCode: 'SIGCAR-TO-123456',
         geom: {
           type: 'Polygon',
           coordinates: [
@@ -72,11 +73,11 @@ export class DemoSeedService {
         },
         id: DEMO_PROPERTY_ID,
         municipality: 'Palmas',
-        name: 'Fazenda Demo Hackamarh',
-        ownerName: 'Produtor Demo',
-        source: 'seed',
+        name: 'Fazenda Real Tocantins',
+        ownerName: 'Produtor Exemplo SIGCAR',
+        source: 'sigcar_integration_mock',
         state: 'TO',
-        totalAreaHa: 125.4,
+        totalAreaHa: 150.5,
       }),
     );
   }

@@ -26,6 +26,30 @@ export class EvidenceService {
     const mission = await this.getMissionOrFail(createEvidenceDto.mission.id);
     const location = this.normalizeLocation(createEvidenceDto, true);
 
+    let status = createEvidenceDto.status ?? 'pending';
+    let validationReason: string | null = null;
+
+    if (createEvidenceDto.collectionPoint?.id) {
+      const distanceResult = await this.evidenceRepository.executeRawQuery(
+        `SELECT ST_Distance(
+          ST_SetSRID(ST_GeomFromGeoJSON($1), 4326)::geography,
+          location::geography
+        ) as distance
+        FROM collection_point
+        WHERE id = $2`,
+        [JSON.stringify(location), createEvidenceDto.collectionPoint.id],
+      );
+
+      if (distanceResult?.[0]) {
+        const distance = parseFloat(distanceResult[0].distance);
+        // Exemplo: se estiver a mais de 100 metros do ponto definido, marca para revisão
+        if (distance > 100) {
+          status = 'needs_review';
+          validationReason = `Coleta realizada a ${Math.round(distance)} metros do ponto definido (limite 100m).`;
+        }
+      }
+    }
+
     return this.evidenceRepository.create({
       mission,
       property: createEvidenceDto.property
@@ -47,7 +71,8 @@ export class EvidenceService {
       faseSucessional: createEvidenceDto.faseSucessional,
       metodoRestauracao: createEvidenceDto.metodoRestauracao,
       notes: createEvidenceDto.notes,
-      status: createEvidenceDto.status ?? 'pending',
+      status,
+      validationReason,
     } as Evidence);
   }
 

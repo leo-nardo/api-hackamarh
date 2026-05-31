@@ -24,4 +24,6 @@ export abstract class EvidenceRepository {
   ): Promise<Evidence | null>;
 
   abstract remove(id: Evidence['id']): Promise<void>;
+
+  abstract executeRawQuery(query: string, parameters?: any[]): Promise<any>;
 }

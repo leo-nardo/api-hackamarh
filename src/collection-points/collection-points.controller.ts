@@ -29,8 +29,8 @@ import { infinityPagination } from '../utils/infinity-pagination';
 import { FindAllCollectionPointsDto } from './dto/find-all-collection-points.dto';
 
 @ApiTags('Collectionpoints')
-@ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
+// @ApiBearerAuth()
+// @UseGuards(AuthGuard('jwt'))
 @Controller({
   path: 'collection-points',
   version: '1',

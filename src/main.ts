@@ -44,7 +44,9 @@ async function bootstrap() {
     .addGlobalParameters({
       in: 'header',
       required: false,
-      name: configService.get('app.headerLanguage', { infer: true }) || 'x-custom-lang',
+      name:
+        configService.get('app.headerLanguage', { infer: true }) ||
+        'x-custom-lang',
       schema: {
         example: 'en',
       },

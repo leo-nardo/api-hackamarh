@@ -18,9 +18,9 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { JwtPayloadType } from '../auth/strategies/types/jwt-payload.type';
 import { PowersyncService } from './powersync.service';
 
-@ApiTags('PowerSync')
-@ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
+@ApiTags('Powersync')
+// @ApiBearerAuth()
+// @UseGuards(AuthGuard('jwt'))
 @Controller({
   path: 'powersync',
   version: VERSION_NEUTRAL,

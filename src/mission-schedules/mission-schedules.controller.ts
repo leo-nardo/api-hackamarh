@@ -29,8 +29,8 @@ import { infinityPagination } from '../utils/infinity-pagination';
 import { FindAllMissionSchedulesDto } from './dto/find-all-mission-schedules.dto';
 
 @ApiTags('Missionschedules')
-@ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
+// @ApiBearerAuth()
+// @UseGuards(AuthGuard('jwt'))
 @Controller({
   path: 'mission-schedules',
   version: '1',
