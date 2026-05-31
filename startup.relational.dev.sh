@@ -28,4 +28,4 @@ ls -R dist | head -n 20
 
 echo "Starting application on port ${PORT:-3000} with global SSL bypass..."
 export NODE_TLS_REJECT_UNAUTHORIZED=0
-npm run start:prod || { echo "Application crashed with exit code $?"; exit 1; }
+node dist/main

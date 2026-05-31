@@ -1,3 +1,4 @@
+console.log('--- NODE PROCESS INITIALIZED ---');
 import 'dotenv/config';
 import {
   ClassSerializerInterceptor,
