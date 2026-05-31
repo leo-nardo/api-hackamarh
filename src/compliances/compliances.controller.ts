@@ -36,6 +36,14 @@ import { FindAllCompliancesDto } from './dto/find-all-compliances.dto';
 export class CompliancesController {
   constructor(private readonly compliancesService: CompliancesService) {}
 
+  @Get('public-queue')
+  @ApiOkResponse({
+    description: 'Retorna a fila de vistorias (ACESSO PÚBLICO PARA DEMO).',
+  })
+  getPublicQueue() {
+    return this.compliancesService.getComplianceQueue();
+  }
+
   @Get('queue')
   @ApiOkResponse({
     description: 'Retorna a fila de vistorias priorizada para o analista.',
