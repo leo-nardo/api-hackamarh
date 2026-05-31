@@ -14,15 +14,6 @@ function validateConfig<T extends object>(
   });
 
   if (errors.length > 0) {
-    console.log('!!! CONFIGURATION ERROR: Missing or invalid environment variables !!!');
-    errors.forEach((err) => {
-      console.log(`- Property: ${err.property}`);
-      if (err.constraints) {
-        Object.values(err.constraints).forEach((constraint) => {
-          console.log(`  Error: ${constraint}`);
-        });
-      }
-    });
     throw new Error(errors.toString());
   }
   return validatedConfig;

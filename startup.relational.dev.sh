@@ -9,23 +9,14 @@ else
   /opt/wait-for-it.sh "${DATABASE_WAIT_HOST}:${DATABASE_WAIT_PORT}"
 fi
 
-echo "Current directory contents:"
-ls -F
-
 if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
-  echo "Running migrations from dist (Production mode)..."
-  NODE_TLS_REJECT_UNAUTHORIZED=0 node ./node_modules/typeorm/cli.js --dataSource=dist/database/data-source.js migration:run || { echo "Migration failed!"; }
+  echo "Running migrations from dist..."
+  node ./node_modules/typeorm/cli.js --dataSource=dist/database/data-source.js migration:run
 fi
 
 if [ "${RUN_SEEDS:-false}" = "true" ]; then
   echo "Running seeds from dist..."
-  NODE_TLS_REJECT_UNAUTHORIZED=0 node dist/database/seeds/relational/run-seed.js || { echo "Seed failed!"; }
+  node dist/database/seeds/relational/run-seed.js
 fi
 
-echo "Pre-flight checks:"
-node -v
-ls -R dist | head -n 20
-
-echo "Starting application on port ${PORT:-3000} with global SSL bypass..."
-export NODE_TLS_REJECT_UNAUTHORIZED=0
-node dist/main
+npm run start:prod
