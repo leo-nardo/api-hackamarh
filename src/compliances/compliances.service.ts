@@ -260,6 +260,66 @@ export class CompliancesService {
     };
   }
 
+  /**
+   * Fila de Vistorias Priorizada para o Analista.
+   * Retorna propriedades com indicadores de risco (fogo, desmatamento) para orientar o trabalho.
+   */
+  async getComplianceQueue() {
+    const properties = await this.propertyRepository.findManyWithPagination({
+      paginationOptions: { page: 1, limit: 100 },
+    });
+
+    const satObservations =
+      await this.externalObservationRepository.findAllWithPagination({
+        paginationOptions: { page: 1, limit: 1000 },
+      });
+
+    const queue = properties.map((property) => {
+      const propertyObs = satObservations.filter(
+        (obs) => obs.entityId === property.carCode,
+      );
+
+      const hasAlerts = propertyObs.some(
+        (obs) => obs.observationType === 'deforestation_alert',
+      );
+      const degradation = propertyObs.find(
+        (obs) => obs.observationType === 'degradation_stats',
+      );
+      const fireRisk = (degradation?.metrics?.['fire_frequency_10y'] as number) || 0;
+
+      // Cálculo de Prioridade Simples
+      let priority = 'Low';
+      let priorityScore = 0;
+
+      if (hasAlerts) {
+        priority = 'Critical';
+        priorityScore = 100;
+      } else if (fireRisk > 1) {
+        priority = 'Medium';
+        priorityScore = 50;
+      }
+
+      return {
+        id: property.id,
+        carCode: property.carCode,
+        name: property.name,
+        municipality: property.municipality || 'Tocantins',
+        owner: property.ownerName || 'Não informado',
+        status: property.status?.name || 'Pending',
+        priority,
+        priorityScore,
+        lastUpdate: property.updatedAt,
+        indicators: {
+          hasAlerts,
+          fireRisk,
+        },
+      };
+    });
+
+    // Ordenar por prioridade (Critical primeiro)
+    return queue.sort((a, b) => b.priorityScore - a.priorityScore);
+  }
+
   async create(createComplianceDto: CreateComplianceDto) {
     return this.complianceRepository.create({
       ...createComplianceDto,

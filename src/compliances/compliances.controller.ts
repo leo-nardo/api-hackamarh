@@ -38,6 +38,14 @@ import { FindAllCompliancesDto } from './dto/find-all-compliances.dto';
 export class CompliancesController {
   constructor(private readonly compliancesService: CompliancesService) {}
 
+  @Get('queue')
+  @ApiOkResponse({
+    description: 'Retorna a fila de vistorias priorizada para o analista.',
+  })
+  getQueue() {
+    return this.compliancesService.getComplianceQueue();
+  }
+
   @Get('recovery-analysis/:carCode')
   @ApiParam({
     name: 'carCode',
