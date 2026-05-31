@@ -22,12 +22,14 @@ import { EntityRelationalHelper } from '../../../../../utils/relational-entity-h
 })
 export class UserEntity extends EntityRelationalHelper {
   @Column({
+    name: 'invite_expires',
     nullable: true,
-    type: Date,
+    type: 'timestamptz',
   })
   inviteExpires?: Date | null;
 
   @Column({
+    name: 'invite_code',
     nullable: true,
     type: String,
   })

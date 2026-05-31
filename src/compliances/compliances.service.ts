@@ -329,7 +329,7 @@ export class CompliancesService {
         name: property.name,
         municipality: property.municipality || 'Tocantins',
         owner: property.ownerName || 'Não informado',
-        status: property.status?.name || 'Pending',
+        status: 'Pending',
         priority,
         priorityScore,
         lastUpdate: property.updatedAt || new Date(),

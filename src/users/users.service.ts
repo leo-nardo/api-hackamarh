@@ -302,7 +302,7 @@ export class UsersService {
 
   async inviteOwner(inviteDto: InviteOwnerDto): Promise<User> {
     // 1. Verificar se a propriedade já existe pelo CAR
-    const properties = await this.propertyRepository.findManyWithPagination({
+    const properties = await this.propertyRepository.findAllWithPagination({
       paginationOptions: { page: 1, limit: 10 },
     });
     // Nota: Idealmente o repository teria um findByCarCode

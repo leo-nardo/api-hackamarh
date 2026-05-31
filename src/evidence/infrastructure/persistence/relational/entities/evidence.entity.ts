@@ -26,10 +26,10 @@ export class EvidenceEntity extends EntityRelationalHelper {
 
   @ManyToOne(() => MissionEntity, {
     eager: true,
-    nullable: false,
+    nullable: true,
   })
   @JoinColumn({ name: 'mission_id' })
-  mission: MissionEntity;
+  mission?: MissionEntity | null;
 
   @ManyToOne(() => PropertyEntity, {
     eager: true,
