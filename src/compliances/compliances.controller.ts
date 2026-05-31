@@ -29,8 +29,6 @@ import { infinityPagination } from '../utils/infinity-pagination';
 import { FindAllCompliancesDto } from './dto/find-all-compliances.dto';
 
 @ApiTags('Compliances')
-@ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
 @Controller({
   path: 'compliances',
   version: '1',
@@ -60,6 +58,8 @@ export class CompliancesController {
     return this.compliancesService.getRecoveryAnalysis(carCode);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
   @Get('audit-summary/:carCode')
   @ApiParam({
     name: 'carCode',
