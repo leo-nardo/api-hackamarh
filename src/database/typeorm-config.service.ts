@@ -11,21 +11,35 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
 
   private getCertContent(certConfig?: string | null): string | undefined {
     if (!certConfig) return undefined;
-    
+
     // Se o valor fornecido for um caminho de arquivo existente, lê o arquivo
     const fullPath = path.resolve(process.cwd(), certConfig);
     if (fs.existsSync(fullPath)) {
       return fs.readFileSync(fullPath, 'utf8');
     }
-    
+
     // Caso contrário, assume que o valor já é o conteúdo do certificado
     return certConfig;
   }
 
   createTypeOrmOptions(): TypeOrmModuleOptions {
-    const ca = this.getCertContent(this.configService.get('database.ca', { infer: true }));
-    const key = this.getCertContent(this.configService.get('database.key', { infer: true }));
-    const cert = this.getCertContent(this.configService.get('database.cert', { infer: true }));
+    let caConfig = this.configService.get('database.ca', { infer: true });
+
+    // Fallback para ca.pem na raiz se nada for fornecido mas o SSL estiver ligado
+    if (!caConfig && this.configService.get('database.sslEnabled', { infer: true })) {
+      const defaultCaPath = path.resolve(process.cwd(), 'ca.pem');
+      if (fs.existsSync(defaultCaPath)) {
+        caConfig = 'ca.pem';
+      }
+    }
+
+    const ca = this.getCertContent(caConfig);
+    const key = this.getCertContent(
+      this.configService.get('database.key', { infer: true }),
+    );
+    const cert = this.getCertContent(
+      this.configService.get('database.cert', { infer: true }),
+    );
 
     return {
       type:
