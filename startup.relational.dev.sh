@@ -10,7 +10,8 @@ else
 fi
 
 if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
-  ./node_modules/.bin/ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js --dataSource=src/database/data-source.ts migration:run
+  echo "Running migrations with SSL fail-safe..."
+  NODE_TLS_REJECT_UNAUTHORIZED=0 ./node_modules/.bin/ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js --dataSource=src/database/data-source.ts migration:run
 fi
 
 if [ -z "${RUN_SEEDS+x}" ]; then
@@ -22,7 +23,8 @@ if [ -z "${RUN_SEEDS+x}" ]; then
 fi
 
 if [ "${RUN_SEEDS}" = "true" ]; then
-  npm run seed:run:relational
+  echo "Running seeds with SSL fail-safe..."
+  NODE_TLS_REJECT_UNAUTHORIZED=0 npm run seed:run:relational
 else
   echo "Skipping seed execution."
 fi
